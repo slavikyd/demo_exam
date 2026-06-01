@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход — ООО Обувь</title>
+    <link rel="icon" href="{% static 'images/Icon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<div class="login-page">
+    <img src="{% static 'images/Icon.png' %}" alt="Логотип" class="logo-large">
+    <div class="login-box">
+        <h1>Вход в систему</h1>
+        {% if error %}
+            <div class="msg-error">{{ error }}</div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="field">
+                <label>Логин</label>
+                <input type="text" name="login" required>
+            </div>
+            <div class="field">
+                <label>Пароль</label>
+                <input type="password" name="password" required>
+            </div>
+            <div class="row-btns">
+                <button type="submit" class="btn-accent">Войти</button>
+                <a href="{% url 'product_list' %}" class="btn-secondary">Войти как гость</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

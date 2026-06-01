@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Заказы — ООО Обувь</title>
+    <link rel="icon" href="{% static 'images/Icon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<header class="header">
+    <div class="header-left">
+        <img src="{% static 'images/Icon.png' %}" alt="Логотип" class="logo">
+        <span>ООО «Обувь»</span>
+    </div>
+    <div class="header-right">
+        <span class="username">{{ user_full_name }}</span>
+        <a href="{% url 'logout' %}" class="btn-secondary">Выйти</a>
+    </div>
+</header>
+<main>
+    <div class="page-top">
+        <h1>Заказы</h1>
+        <div class="row-btns">
+            <a href="{% url 'product_list' %}" class="btn-secondary">← Товары</a>
+            {% if role == 'admin' %}
+                <a href="{% url 'order_create' %}" class="btn-accent">+ Добавить заказ</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% for order in orders %}
+    <div class="order-card"
+        {% if role == 'admin' %}
+            onclick="location.href='{% url 'order_edit' order.pk %}'"
+            style="cursor:pointer"
+        {% endif %}>
+        <div class="order-info">
+            <strong>Артикул заказа: {{ order.article }}</strong>
+            <div>Статус заказа: {{ order.get_status_display }}</div>
+            <div>Адрес пункта выдачи: {{ order.pickup_point.address }}</div>
+            <div>Дата заказа: {{ order.order_date }}</div>
+        </div>
+        <div class="order-delivery">
+            Дата доставки<br>
+            <strong>{{ order.delivery_date|default:"—" }}</strong>
+        </div>
+        {% if role == 'admin' %}
+        <div class="product-del" onclick="event.stopPropagation()">
+            <form method="post" action="{% url 'order_delete' order.pk %}"
+                  onsubmit="return confirm('Удалить заказ «{{ order.article }}»?')">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger">Удалить</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+        <p class="empty">Заказы не найдены.</p>
+    {% endfor %}
+</main>
+</body>
+</html>

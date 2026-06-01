@@ -1,0 +1,148 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Times New Roman', Times, serif;
+    background: #FFFFFF;
+    color: #333;
+}
+
+/* ===== ШАПКА ===== */
+.header {
+    background: #7FFF00;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ccc;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.logo { height: 50px; width: auto; object-fit: contain; }
+.logo-large { height: 80px; width: auto; object-fit: contain; margin-bottom: 16px; }
+.username { font-weight: bold; }
+
+/* ===== КНОПКИ ===== */
+.btn-accent {
+    background: #00FA9A; color: #000;
+    padding: 8px 16px; border: none; border-radius: 4px;
+    cursor: pointer; font-family: inherit; font-size: 1em;
+    text-decoration: none; display: inline-block;
+}
+.btn-secondary {
+    background: #7FFF00; color: #000;
+    padding: 8px 16px; border: none; border-radius: 4px;
+    cursor: pointer; font-family: inherit; font-size: 1em;
+    text-decoration: none; display: inline-block;
+}
+.btn-danger {
+    background: #dc3545; color: #fff;
+    padding: 6px 12px; border: none; border-radius: 4px;
+    cursor: pointer; font-family: inherit;
+}
+
+/* ===== СТРАНИЦА ВХОДА ===== */
+.login-page {
+    min-height: 100vh; background: #7FFF00;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 20px;
+}
+.login-box {
+    background: #fff; padding: 30px; border-radius: 8px;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.login-box h1 { margin-bottom: 20px; font-size: 1.4em; text-align: center; }
+
+/* ===== ПОЛЯ ФОРМ ===== */
+main { padding: 20px; max-width: 1100px; margin: 0 auto; }
+h1 { margin: 12px 0; }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; margin-bottom: 4px; font-weight: bold; }
+.field input,
+.field select,
+.field textarea {
+    width: 100%; padding: 7px; border: 1px solid #ccc;
+    border-radius: 4px; font-family: inherit; font-size: 1em;
+}
+.field textarea { resize: vertical; min-height: 70px; }
+.readonly { background: #f5f5f5; cursor: not-allowed; }
+.row-btns { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+/* ===== ВЕРХНЯЯ ПАНЕЛЬ ===== */
+.page-top {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 16px;
+}
+
+/* ===== ФИЛЬТРЫ ===== */
+.filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.filters input,
+.filters select {
+    padding: 7px; border: 1px solid #ccc; border-radius: 4px;
+    font-family: inherit; font-size: 1em;
+}
+.filters input { flex: 1; min-width: 180px; }
+
+/* ===== КАРТОЧКА ТОВАРА ===== */
+.product-card {
+    display: flex; align-items: stretch;
+    border: 1px solid #ccc; border-radius: 4px;
+    background: #fff; margin-bottom: 8px; overflow: hidden;
+}
+.card-green { background: #2E8B57; color: #fff; }
+.card-blue  { background: lightblue; }
+
+.product-img {
+    width: 120px; min-width: 120px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 8px; background: rgba(255,255,255,0.25);
+}
+.product-img img { width: 100px; height: 75px; object-fit: contain; }
+
+.product-info {
+    flex: 1; padding: 10px;
+    display: flex; flex-direction: column; gap: 3px;
+}
+
+.price-old { text-decoration: line-through; color: red; margin-right: 8px; }
+.price-new { color: black; font-weight: bold; }
+
+.product-discount {
+    width: 75px; min-width: 75px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; border-left: 1px solid #ccc; padding: 8px;
+}
+.product-del {
+    display: flex; align-items: center;
+    padding: 8px; border-left: 1px solid #ccc;
+}
+
+/* ===== КАРТОЧКА ЗАКАЗА ===== */
+.order-card {
+    display: flex; align-items: stretch;
+    border: 1px solid #ccc; border-radius: 4px;
+    background: #fff; margin-bottom: 8px; overflow: hidden;
+}
+.order-info { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 3px; }
+.order-delivery {
+    width: 140px; min-width: 140px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 10px; border-left: 1px solid #ccc; text-align: center;
+}
+
+/* ===== ПРЕВЬЮ ФОТО В ФОРМЕ ===== */
+.img-preview {
+    width: 300px; height: 200px;
+    object-fit: contain; border: 1px solid #ccc;
+    margin-bottom: 8px; display: block;
+}
+
+/* ===== СООБЩЕНИЯ ===== */
+.msg-error {
+    background: #f8d7da; color: #721c24;
+    padding: 8px 12px; border-radius: 4px;
+    margin-bottom: 12px; border: 1px solid #f5c6cb;
+}
+.empty { text-align: center; color: #666; padding: 30px; font-size: 1.1em; }

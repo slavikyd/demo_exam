@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }} — ООО Обувь</title>
+    <link rel="icon" href="{% static 'images/Icon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<header class="header">
+    <div class="header-left">
+        <img src="{% static 'images/Icon.png' %}" alt="Логотип" class="logo">
+        <span>ООО «Обувь»</span>
+    </div>
+    <div class="header-right">
+        <span class="username">{{ user_full_name }}</span>
+        <a href="{% url 'logout' %}" class="btn-secondary">Выйти</a>
+    </div>
+</header>
+<main>
+    <a href="{% url 'order_list' %}" class="btn-secondary">← Назад</a>
+    <h1>{{ title }}</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {% if not is_create %}
+        <div class="field">
+            <label>ID заказа</label>
+            <input type="text" value="{{ order.pk }}" readonly class="readonly">
+        </div>
+        {% endif %}
+
+        <div class="field">
+            <label>Артикул *</label>
+            <input type="text" name="article"
+                   value="{{ order.article|default:'' }}" required>
+            {% if errors.article %}<div class="msg-error">{{ errors.article }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+            <label>Статус заказа *</label>
+            <select name="status">
+                {% for val, label in status_choices %}
+                    <option value="{{ val }}"
+                        {% if order.status == val %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Адрес пункта выдачи *</label>
+            <select name="pickup_point">
+                {% for pp in pickup_points %}
+                    <option value="{{ pp.pk }}"
+                        {% if order.pickup_point_id == pp.pk %}selected{% endif %}>
+                        {{ pp.address }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Дата заказа *</label>
+            <input type="date" name="order_date"
+                   value="{{ order.order_date|default:'' }}" required>
+            {% if errors.order_date %}
+                <div class="msg-error">{{ errors.order_date }}</div>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            <label>Дата выдачи</label>
+            <input type="date" name="delivery_date"
+                   value="{{ order.delivery_date|default:'' }}">
+        </div>
+
+        <div class="row-btns">
+            <button type="submit" class="btn-accent">
+                {% if is_create %}Добавить{% else %}Сохранить{% endif %}
+            </button>
+            <a href="{% url 'order_list' %}" class="btn-secondary">Отмена</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

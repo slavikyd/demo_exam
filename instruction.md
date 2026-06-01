@@ -74,10 +74,8 @@ C:\Program Files\PostgreSQL\18\bin
 psql -U postgres
 ```
 
-> ⚠️ **Warning:** если команда `psql` не найдена — найди `psql.exe` вручную через Проводник или Пуск и запусти напрямую:
-> ```powershell
-> & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres
-> ```
+> [!WARNING]
+> если команда `psql` не найдена — найди `psql.exe` вручную через Проводник или Пуск и запусти напрямую:  "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres
 
 Внутри psql:
 ```sql

@@ -1,0 +1,142 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Список товаров — ООО Обувь</title>
+    <link rel="icon" href="{% static 'images/Icon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<header class="header">
+    <div class="header-left">
+        <img src="{% static 'images/Icon.png' %}" alt="Логотип" class="logo">
+        <span>ООО «Обувь»</span>
+    </div>
+    <div class="header-right">
+        {% if user_full_name %}<span class="username">{{ user_full_name }}</span>{% endif %}
+        {% if role != 'guest' %}
+            <a href="{% url 'logout' %}" class="btn-secondary">Выйти</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn-accent">Войти</a>
+        {% endif %}
+    </div>
+</header>
+
+<main>
+    <div class="page-top">
+        <h1>Список товаров</h1>
+        <div class="row-btns">
+            {% if role == 'manager' or role == 'admin' %}
+                <a href="{% url 'order_list' %}" class="btn-secondary">Заказы</a>
+            {% endif %}
+            {% if role == 'admin' %}
+                <a href="{% url 'product_create' %}" class="btn-accent">+ Добавить товар</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if error %}
+        <div class="msg-error">{{ error }}</div>
+    {% endif %}
+
+    {% if role == 'manager' or role == 'admin' %}
+    <div class="filters">
+        <input type="text" id="search" placeholder="Поиск по всем полям..."
+               value="{{ search_query }}">
+        <select id="supplier">
+            <option value="">Все поставщики</option>
+            {% for s in suppliers %}
+                <option value="{{ s.name }}"
+                    {% if s.name == supplier_filter %}selected{% endif %}>
+                    {{ s.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <select id="sort">
+            <option value="">Без сортировки</option>
+            <option value="quantity_asc"
+                {% if sort_by == 'quantity_asc' %}selected{% endif %}>Количество ↑</option>
+            <option value="quantity_desc"
+                {% if sort_by == 'quantity_desc' %}selected{% endif %}>Количество ↓</option>
+        </select>
+    </div>
+    {% endif %}
+
+    {% for product in products %}
+    <div class="product-card
+        {% if product.is_big_discount %}card-green
+        {% elif not product.is_in_stock %}card-blue{% endif %}"
+        {% if role == 'admin' %}
+            onclick="location.href='{% url 'product_edit' product.pk %}'"
+            style="cursor:pointer"
+        {% endif %}>
+
+        <div class="product-img">
+            {% if product.image %}
+                <img src="/media/{{ product.image }}" alt="{{ product.name }}">
+            {% else %}
+                <img src="{% static 'images/picture.png' %}" alt="Нет фото">
+            {% endif %}
+        </div>
+
+        <div class="product-info">
+            <strong>{{ product.category.name }} | {{ product.name }}</strong>
+            <div>Описание: {{ product.description|default:"—" }}</div>
+            <div>Производитель: {{ product.manufacturer.name }}</div>
+            <div>Поставщик: {{ product.supplier.name }}</div>
+            <div class="price-row">
+                {% if product.has_discount %}
+                    <span class="price-old">{{ product.price }} ₽</span>
+                    <span class="price-new">{{ product.get_final_price }} ₽</span>
+                {% else %}
+                    <span>{{ product.price }} ₽</span>
+                {% endif %}
+            </div>
+            <div>Единица измерения: {{ product.unit }}</div>
+            <div>Количество на складе: {{ product.quantity }}</div>
+        </div>
+
+        <div class="product-discount">
+            {% if product.has_discount %}{{ product.discount }}%{% else %}—{% endif %}
+        </div>
+
+        {% if role == 'admin' %}
+        <div class="product-del" onclick="event.stopPropagation()">
+            <form method="post" action="{% url 'product_delete' product.pk %}"
+                  onsubmit="return confirm('Удалить товар «{{ product.name }}»?')">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger">Удалить</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+        <p class="empty">Товары не найдены.</p>
+    {% endfor %}
+</main>
+
+{% if role == 'manager' or role == 'admin' %}
+<script>
+    function applyFilters() {
+        const params = new URLSearchParams();
+        const search   = document.getElementById('search').value;
+        const supplier = document.getElementById('supplier').value;
+        const sort     = document.getElementById('sort').value;
+        if (search)   params.set('search', search);
+        if (supplier) params.set('supplier', supplier);
+        if (sort)     params.set('sort', sort);
+        window.location.href = '/products/?' + params.toString();
+    }
+
+    let timer;
+    document.getElementById('search').addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(applyFilters, 300);
+    });
+    document.getElementById('supplier').addEventListener('change', applyFilters);
+    document.getElementById('sort').addEventListener('change', applyFilters);
+</script>
+{% endif %}
+</body>
+</html>

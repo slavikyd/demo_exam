@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }} — ООО Обувь</title>
+    <link rel="icon" href="{% static 'images/Icon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<header class="header">
+    <div class="header-left">
+        <img src="{% static 'images/Icon.png' %}" alt="Логотип" class="logo">
+        <span>ООО «Обувь»</span>
+    </div>
+    <div class="header-right">
+        <span class="username">{{ user_full_name }}</span>
+        <a href="{% url 'logout' %}" class="btn-secondary">Выйти</a>
+    </div>
+</header>
+<main>
+    <a href="{% url 'product_list' %}" class="btn-secondary">← Назад</a>
+    <h1>{{ title }}</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% if not is_create %}
+        <div class="field">
+            <label>ID товара</label>
+            <input type="text" value="{{ product.pk }}" readonly class="readonly">
+        </div>
+        {% endif %}
+
+        <div class="field">
+            <label>Фото товара</label>
+            {% if product.image %}
+                <img src="/media/{{ product.image }}" id="preview" class="img-preview">
+            {% else %}
+                <img src="{% static 'images/picture.png' %}" id="preview" class="img-preview">
+            {% endif %}
+            <input type="file" name="image" accept="image/*">
+        </div>
+
+        <div class="field">
+            <label>Наименование *</label>
+            <input type="text" name="name" value="{{ product.name|default:'' }}" required>
+            {% if errors.name %}<div class="msg-error">{{ errors.name }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+            <label>Категория *</label>
+            <select name="category">
+                {% for c in categories %}
+                    <option value="{{ c.pk }}"
+                        {% if product.category_id == c.pk %}selected{% endif %}>
+                        {{ c.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Описание</label>
+            <textarea name="description">{{ product.description|default:'' }}</textarea>
+        </div>
+
+        <div class="field">
+            <label>Производитель *</label>
+            <select name="manufacturer">
+                {% for m in manufacturers %}
+                    <option value="{{ m.pk }}"
+                        {% if product.manufacturer_id == m.pk %}selected{% endif %}>
+                        {{ m.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Поставщик *</label>
+            <select name="supplier">
+                {% for s in suppliers %}
+                    <option value="{{ s.pk }}"
+                        {% if product.supplier_id == s.pk %}selected{% endif %}>
+                        {{ s.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Цена (₽) * — не может быть отрицательной</label>
+            <input type="number" name="price" step="0.01" min="0"
+                   value="{{ product.price|default:'' }}" required>
+            {% if errors.price %}<div class="msg-error">{{ errors.price }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+            <label>Единица измерения *</label>
+            <input type="text" name="unit" value="{{ product.unit|default:'пара' }}">
+        </div>
+
+        <div class="field">
+            <label>Количество на складе * — не может быть отрицательным</label>
+            <input type="number" name="quantity" min="0"
+                   value="{{ product.quantity|default:0 }}" required>
+            {% if errors.quantity %}<div class="msg-error">{{ errors.quantity }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+            <label>Скидка (%) — от 0 до 100</label>
+            <input type="number" name="discount" step="0.01" min="0" max="100"
+                   value="{{ product.discount|default:0 }}">
+        </div>
+
+        <div class="row-btns">
+            <button type="submit" class="btn-accent">
+                {% if is_create %}Добавить{% else %}Сохранить{% endif %}
+            </button>
+            <a href="{% url 'product_list' %}" class="btn-secondary">Отмена</a>
+        </div>
+    </form>
+</main>
+<script>
+    document.querySelector('input[type=file]').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => document.getElementById('preview').src = e.target.result;
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+</body>
+</html>
