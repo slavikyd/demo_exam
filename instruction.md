@@ -1,95 +1,85 @@
 # Полная пошаговая инструкция: Демоэкзамен 09.02.07 — ООО «Обувь»
 
-> **Стек:** Python 3.13 · Django · PostgreSQL (Windows) · UV · VS Code  
-> **Время на экзамене:** до 5 часов (4ч инвариант + 1ч вариатив)  
-> **Максимум баллов:** 100 (75 инвариант + 25 вариатив)
+> **Стек:** Python 3.13 · Django 5 · PostgreSQL 18 · UV · VS Code · Windows  
+> **Время:** до 5 часов (4ч инвариант + 1ч вариатив)  
+> **Баллов:** 100 (75 инвариант + 25 вариатив)
 
 ---
 
 ## СОДЕРЖАНИЕ
 
-1. [Подготовка до экзамена](#1-подготовка-до-экзамена)
-2. [Настройка PostgreSQL на Windows](#2-настройка-postgresql-на-windows)
-3. [Создание проекта с UV](#3-создание-проекта-с-uv)
-4. [Модуль 1 — База данных и ER-диаграмма](#4-модуль-1--база-данных-и-er-диаграмма)
-5. [Модуль 1 — Django модели и миграции](#5-модуль-1--django-модели-и-миграции)
-6. [Модуль 1 — Скрипт импорта CSV (вариатив)](#6-модуль-1--скрипт-импорта-csv-вариатив)
-7. [Модуль 2 — Авторизация и базовый интерфейс](#7-модуль-2--авторизация-и-базовый-интерфейс)
-8. [Модуль 2 — Список товаров с подсветкой](#8-модуль-2--список-товаров-с-подсветкой)
-9. [Модуль 3 — Поиск, фильтрация, сортировка](#9-модуль-3--поиск-фильтрация-сортировка)
-10. [Модуль 3 — Форма добавления/редактирования товара + Pillow](#10-модуль-3--форма-добавленияредактирования-товара--pillow)
-11. [Модуль 3 — Удаление товара](#11-модуль-3--удаление-товара)
-12. [Модуль 4 — Заказы](#12-модуль-4--заказы)
-13. [Вариативная часть — CSRF, неиспользуемые фото](#13-вариативная-часть--csrf-неиспользуемые-фото)
-14. [Git и финальная сдача](#14-git-и-финальная-сдача)
-15. [Чеклист перед сдачей](#15-чеклист-перед-сдачей)
+1. [Подготовка окружения](#1-подготовка-окружения)
+2. [Настройка PostgreSQL](#2-настройка-postgresql)
+3. [Создание Django проекта с UV](#3-создание-django-проекта-с-uv)
+4. [ВАРИАНТ А — SQL + inspectdb](#4-вариант-а--sql--inspectdb)
+5. [ВАРИАНТ Б — Модели Django + миграции](#5-вариант-б--модели-django--миграции)
+6. [Скрипт импорта CSV (вариатив)](#6-скрипт-импорта-csv-вариатив)
+7. [ER-диаграмма в PDF](#7-er-диаграмма-в-pdf)
+8. [URLs и структура приложения](#8-urls-и-структура-приложения)
+9. [Views — авторизация](#9-views--авторизация)
+10. [Views — список товаров](#10-views--список-товаров)
+11. [Views — форма добавления/редактирования товара](#11-views--форма-добавленияредактирования-товара)
+12. [Views — удаление товара](#12-views--удаление-товара)
+13. [Views — заказы](#13-views--заказы)
+14. [Шаблоны и CSS](#14-шаблоны-и-css)
+15. [Вариативная часть — cleanup неиспользуемых фото](#15-вариативная-часть--cleanup-неиспользуемых-фото)
+16. [SQL дамп и Git](#16-sql-дамп-и-git)
+17. [Чеклист перед сдачей](#17-чеклист-перед-сдачей)
+18. [Быстрые команды](#18-быстрые-команды)
 
 ---
 
-## 1. Подготовка до экзамена
+## 1. Подготовка окружения
 
-### Что должно быть установлено на экзаменационном ПК
-
-- Python 3.13+ (проверить: `python --version`)
-- PostgreSQL (уже установлен и запущен как служба Windows)
+### Что должно быть на экзаменационном ПК
+- Python 3.13+
+- PostgreSQL 18 (уже запущен как служба Windows)
 - VS Code
 - Git
-- UV (`pip install uv` или скачан заранее)
-- draw.io (для ER-диаграммы, оффлайн версия)
+- UV
 
-### Ресурсы, которые дадут на экзамене (из Приложения 2)
-
-- `picture.png` — картинка-заглушка для товаров без фото
-- `Icon.png` / `Icon.ico` — иконка приложения
+### Ресурсы из Приложения 2 (дадут на экзамене)
+- `picture.png` — заглушка для товаров без фото
+- `Icon.ico` — иконка приложения
 - Логотип компании
-- CSV-файлы с пометкой `import` — данные для загрузки в БД
+- CSV-файлы с пометкой `import`
 
-### Запомни цвета стиля (из руководства по стилю)
+### Цвета стиля (запомнить)
 
 | Назначение | HEX |
 |---|---|
 | Основной фон | `#FFFFFF` |
 | Дополнительный фон | `#7FFF00` |
-| Акцент (целевое действие) | `#00FA9A` |
+| Акцент | `#00FA9A` |
 | Скидка > 15% (фон строки) | `#2E8B57` |
-| Нет на складе (фон строки) | голубой (`lightblue`) |
+| Нет на складе (фон строки) | `lightblue` |
 | Перечёркнутая цена | красный шрифт |
-| Итоговая цена со скидкой | чёрный шрифт |
+| Итоговая цена | чёрный шрифт |
 
 Шрифт везде: **Times New Roman**
 
 ---
 
-## 2. Настройка PostgreSQL на Windows
+## 2. Настройка PostgreSQL
 
-PostgreSQL уже установлен. Нужно только создать базу данных.
-
-### Шаг 2.1 — Открыть PowerShell или cmd от имени администратора
-
-```powershell
-# Проверить, что PostgreSQL запущен
-Get-Service -Name postgresql*
-# Должно показать: Running
+### Шаг 2.1 — Добавить в PATH (если не добавлен)
+Система → Переменные среды → PATH → добавить:
 ```
+C:\Program Files\PostgreSQL\18\bin
+```
+Перезапустить PowerShell / VS Code.
 
 ### Шаг 2.2 — Создать базу данных
-
 ```powershell
-# Запустить psql от пользователя postgres
 psql -U postgres
 ```
 
-> [!WARNING]
-> Если команда не работает стоит поискать psql как отдельную команду в проводнике или Пуске
+> ⚠️ **Warning:** если команда `psql` не найдена — найди `psql.exe` вручную через Проводник или Пуск и запусти напрямую:
+> ```powershell
+> & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres
+> ```
 
-
-Если psql не найден в PATH, найти его вручную:
-```powershell
-# Обычно находится здесь:
-& "C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres
-```
-
-Внутри psql выполнить:
+Внутри psql:
 ```sql
 CREATE DATABASE shoe_store OWNER postgres;
 \q
@@ -102,229 +92,269 @@ HOST:     localhost
 PORT:     5432
 NAME:     shoe_store
 USER:     postgres
-PASSWORD: (пароль, который задавался при установке — обычно postgres)
+PASSWORD: (пароль заданный при установке — обычно postgres)
 ```
-
-> **Важно:** если не помнишь пароль, можно изменить его:  
-> Открыть pgAdmin → щёлкнуть правой кнопкой на postgres → Change Password
 
 ---
 
-## 3. Создание проекта с UV
+## 3. Создание Django проекта с UV
 
-### Шаг 3.1 — Создать папку проекта
+### Создать папку и проект
 
 ```powershell
-# В удобном месте (например, рабочий стол или C:\projects\)
 mkdir shoe_store
 cd shoe_store
-```
 
-### Шаг 3.2 — Инициализировать UV проект с venv
-
-```powershell
-# Инициализировать проект
 uv init --no-readme
-
-# UV автоматически создаёт .venv внутри папки
-# Убедиться что venv создан:
 uv venv
-```
-
-### Шаг 3.3 — Установить зависимости
-
-```powershell
-uv add django psycopg2-binary pillow
-```
-
-После этого в `pyproject.toml` появятся зависимости. Проверить:
-```powershell
-# Активировать venv для работы в терминале VS Code
 .venv\Scripts\activate
-```
 
-> **VS Code:** открыть командную палитру (Ctrl+Shift+P) →  
-> "Python: Select Interpreter" → выбрать `.venv\Scripts\python.exe`
+uv add django psycopg2-binary pillow
 
-### Шаг 3.4 — Создать Django проект
-
-```powershell
-# Убедиться что venv активирован (видно (.venv) в начале строки)
 django-admin startproject config .
 python manage.py startapp core
 ```
 
-### Шаг 3.5 — Создать структуру папок
+### Создать структуру папок
 
 ```powershell
-# Папки для шаблонов
 mkdir core\templates\core
-
-# Папки для management команд (скрипт импорта CSV)
 mkdir core\management
 mkdir core\management\commands
-
-# Создать __init__.py файлы
-type nul > core\management\__init__.py
-type nul > core\management\commands\__init__.py
-
-# Папки для статики и медиа
 mkdir static\css
 mkdir static\images
 mkdir media\products
+mkdir import_data
+
+type nul > core\management\__init__.py
+type nul > core\management\commands\__init__.py
 ```
 
-### Шаг 3.6 — Настроить config/settings.py
+### Скопировать ресурсы
 
-Открыть `config/settings.py` и изменить/добавить следующее:
+Из архива Приложения 2:
+- `picture.png` → `static\images\picture.png`
+- `Icon.ico` → `static\images\Icon.ico`
+- логотип → `static\images\logo.png`
+- CSV файлы → `import_data\`
+
+### config/settings.py
 
 ```python
-import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-your-secret-key-here'
+SECRET_KEY = 'django-insecure-demoexam-key-2026'
 
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core',  # наше приложение
+    'core',
 ]
 
-# База данных PostgreSQL
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'config.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request',
+            ],
+        },
+    },
+]
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'shoe_store',
         'USER': 'postgres',
-        'PASSWORD': 'postgres',  # ваш пароль
+        'PASSWORD': 'postgres',
         'HOST': 'localhost',
         'PORT': '5432',
     }
 }
 
-# Язык и время
 LANGUAGE_CODE = 'ru-ru'
 TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
-USE_TZ = True
+USE_TZ = False
 
-# Статические файлы (CSS, JS, иконки)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# Медиафайлы (загружаемые фото товаров)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
-# После входа перенаправлять на список товаров
-LOGIN_URL = '/'
-LOGIN_REDIRECT_URL = '/products/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ```
 
-### Шаг 3.7 — Скопировать ресурсы в static/images/
-
-Из архива Приложения 2 скопировать:
-- `picture.png` → `static/images/picture.png`
-- `Icon.png` → `static/images/Icon.png`
-- `Icon.ico` → `static/images/Icon.ico`
-- логотип → `static/images/logo.png` (или как называется в ресурсах)
-
 ---
 
-## 4. Модуль 1 — База данных и ER-диаграмма
+## 4. ВАРИАНТ А — SQL + inspectdb
 
-### Схема БД (7 таблиц, 3НФ)
+> Создаём таблицы вручную SQL скриптом, затем Django читает их через `inspectdb`.  
+> **Плюсы:** быстро, не надо думать о миграциях, сразу есть рабочая БД с данными.  
+> **Когда выбирать:** если уверен в SQL и хочешь сначала данные, а потом код.
 
-Прежде чем писать модели, нарисуй ER-диаграмму в draw.io.
+### Шаг А1 — Написать schema.sql
 
-**Таблицы:**
+```sql
+-- Роли пользователей
+CREATE TABLE role (
+    id   SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
 
-| Таблица | Поля |
-|---|---|
-| `role` | id, name (guest/client/manager/admin) |
-| `user` | id, last_name, first_name, middle_name, login, password, role_id (FK) |
-| `category` | id, name |
-| `manufacturer` | id, name |
-| `supplier` | id, name |
-| `product` | id, name, category_id (FK), description, manufacturer_id (FK), supplier_id (FK), price, unit, quantity, discount, image_path |
-| `pickup_point` | id, address |
-| `order` | id, article, status, pickup_point_id (FK), order_date, delivery_date |
-| `order_item` | id, order_id (FK), product_id (FK) |
+-- Пользователи системы
+CREATE TABLE "user" (
+    id          SERIAL PRIMARY KEY,
+    last_name   VARCHAR(100) NOT NULL,
+    first_name  VARCHAR(100) NOT NULL,
+    middle_name VARCHAR(100) DEFAULT '',
+    login       VARCHAR(100) NOT NULL UNIQUE,
+    password    VARCHAR(255) NOT NULL,
+    role_id     INTEGER NOT NULL REFERENCES role(id)
+);
 
-**Связи:**
-- user → role (многие к одному)
-- product → category (многие к одному)
-- product → manufacturer (многие к одному)
-- product → supplier (многие к одному)
-- order → pickup_point (многие к одному)
-- order_item → order (многие к одному)
-- order_item → product (многие к одному)
+-- Категории товаров
+CREATE TABLE category (
+    id   SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
 
-### Создание ER-диаграммы в draw.io
+-- Производители
+CREATE TABLE manufacturer (
+    id   SERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL UNIQUE
+);
 
-1. Открыть draw.io (десктопная версия или diagrams.net)
-2. Создать новую диаграмму → выбрать Entity Relationship
-3. Добавить таблицы с полями, обозначить PK и FK
-4. Нарисовать связи между таблицами
-5. Экспортировать: File → Export as → PDF
-6. Сохранить как `er_diagram.pdf`
+-- Поставщики
+CREATE TABLE supplier (
+    id   SERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL UNIQUE
+);
 
----
+-- Товары
+CREATE TABLE product (
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR(200) NOT NULL,
+    category_id     INTEGER NOT NULL REFERENCES category(id),
+    description     TEXT DEFAULT '',
+    manufacturer_id INTEGER NOT NULL REFERENCES manufacturer(id),
+    supplier_id     INTEGER NOT NULL REFERENCES supplier(id),
+    price           NUMERIC(10,2) NOT NULL CHECK (price >= 0),
+    unit            VARCHAR(50) DEFAULT 'пара',
+    quantity        INTEGER DEFAULT 0 CHECK (quantity >= 0),
+    discount        NUMERIC(5,2) DEFAULT 0 CHECK (discount >= 0 AND discount <= 100),
+    image           VARCHAR(500) DEFAULT ''
+);
 
-## 5. Модуль 1 — Django модели и миграции
+-- Пункты выдачи
+CREATE TABLE pickup_point (
+    id      SERIAL PRIMARY KEY,
+    address VARCHAR(500) NOT NULL
+);
 
-### Шаг 5.1 — Написать models.py
+-- Заказы
+CREATE TABLE "order" (
+    id              SERIAL PRIMARY KEY,
+    article         VARCHAR(100) NOT NULL UNIQUE,
+    status          VARCHAR(50) DEFAULT 'new',
+    pickup_point_id INTEGER NOT NULL REFERENCES pickup_point(id),
+    order_date      DATE NOT NULL,
+    delivery_date   DATE
+);
 
-Открыть `core/models.py` и заменить содержимое:
+-- Позиции заказа
+CREATE TABLE order_item (
+    id         SERIAL PRIMARY KEY,
+    order_id   INTEGER NOT NULL REFERENCES "order"(id) ON DELETE CASCADE,
+    product_id INTEGER NOT NULL REFERENCES product(id)
+);
+
+-- Начальные данные: роли
+INSERT INTO role (name) VALUES ('guest'), ('client'), ('manager'), ('admin');
+
+-- Тестовые пользователи
+INSERT INTO "user" (last_name, first_name, middle_name, login, password, role_id)
+VALUES ('Иванов', 'Иван', 'Иванович', 'admin', 'admin', 4);
+
+INSERT INTO "user" (last_name, first_name, middle_name, login, password, role_id)
+VALUES ('Петров', 'Пётр', 'Петрович', 'manager', 'manager', 3);
+
+INSERT INTO "user" (last_name, first_name, middle_name, login, password, role_id)
+VALUES ('Сидоров', 'Сидор', 'Сидорович', 'client', 'client', 2);
+```
+
+### Шаг А2 — Выполнить скрипт
+
+```powershell
+psql -U postgres -d shoe_store -f schema.sql
+```
+
+### Шаг А3 — Сгенерировать models.py через inspectdb
+
+```powershell
+python manage.py inspectdb > core/models.py
+```
+
+### Шаг А4 — Подправить models.py
+
+`inspectdb` генерирует рабочий код, но нужно добавить вспомогательные методы
+и убедиться что `id` прописан явно, `managed = False` стоит в каждой модели.
 
 ```python
 from django.db import models
 
 
 class Role(models.Model):
-    """Роль пользователя в системе"""
-    name = models.CharField(max_length=50, unique=True, verbose_name='Название роли')
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=50, unique=True)
 
     class Meta:
+        managed = False
         db_table = 'role'
-        verbose_name = 'Роль'
-        verbose_name_plural = 'Роли'
 
     def __str__(self):
         return self.name
 
 
 class User(models.Model):
-    """Пользователь системы"""
-    last_name = models.CharField(max_length=100, verbose_name='Фамилия')
-    first_name = models.CharField(max_length=100, verbose_name='Имя')
-    middle_name = models.CharField(max_length=100, blank=True, verbose_name='Отчество')
-    login = models.CharField(max_length=100, unique=True, verbose_name='Логин')
-    password = models.CharField(max_length=255, verbose_name='Пароль')
-    role = models.ForeignKey(Role, on_delete=models.PROTECT, verbose_name='Роль')
+    id = models.IntegerField(primary_key=True)
+    last_name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, blank=True, default='')
+    login = models.CharField(max_length=100, unique=True)
+    password = models.CharField(max_length=255)
+    role = models.ForeignKey(Role, on_delete=models.PROTECT, db_column='role_id')
 
     class Meta:
+        managed = False
         db_table = 'user'
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
 
     def __str__(self):
         return f'{self.last_name} {self.first_name}'
 
     def get_full_name(self):
-        """Возвращает ФИО пользователя"""
+        """Возвращает полное ФИО пользователя"""
         parts = [self.last_name, self.first_name]
         if self.middle_name:
             parts.append(self.middle_name)
@@ -332,103 +362,98 @@ class User(models.Model):
 
 
 class Category(models.Model):
-    """Категория товара"""
-    name = models.CharField(max_length=100, unique=True, verbose_name='Название')
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True)
 
     class Meta:
+        managed = False
         db_table = 'category'
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
 
     def __str__(self):
         return self.name
 
 
 class Manufacturer(models.Model):
-    """Производитель товара"""
-    name = models.CharField(max_length=200, unique=True, verbose_name='Название')
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=200, unique=True)
 
     class Meta:
+        managed = False
         db_table = 'manufacturer'
-        verbose_name = 'Производитель'
-        verbose_name_plural = 'Производители'
 
     def __str__(self):
         return self.name
 
 
 class Supplier(models.Model):
-    """Поставщик товара"""
-    name = models.CharField(max_length=200, unique=True, verbose_name='Название')
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=200, unique=True)
 
     class Meta:
+        managed = False
         db_table = 'supplier'
-        verbose_name = 'Поставщик'
-        verbose_name_plural = 'Поставщики'
 
     def __str__(self):
         return self.name
 
 
 class Product(models.Model):
-    """Товар (обувь)"""
-    name = models.CharField(max_length=200, verbose_name='Наименование')
-    category = models.ForeignKey(Category, on_delete=models.PROTECT, verbose_name='Категория')
-    description = models.TextField(blank=True, verbose_name='Описание')
-    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT, verbose_name='Производитель')
-    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, verbose_name='Поставщик')
-    # Цена не может быть отрицательной
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена')
-    unit = models.CharField(max_length=50, default='пара', verbose_name='Единица измерения')
-    # Количество не может быть отрицательным
-    quantity = models.PositiveIntegerField(default=0, verbose_name='Количество на складе')
-    # Скидка в процентах (0-100)
-    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name='Скидка (%)')
-    # Путь к изображению хранится в БД
-    image = models.ImageField(upload_to='products/', blank=True, null=True, verbose_name='Фото')
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=200)
+    category = models.ForeignKey(
+        Category, on_delete=models.PROTECT, db_column='category_id'
+    )
+    description = models.TextField(blank=True, default='')
+    manufacturer = models.ForeignKey(
+        Manufacturer, on_delete=models.PROTECT, db_column='manufacturer_id'
+    )
+    supplier = models.ForeignKey(
+        Supplier, on_delete=models.PROTECT, db_column='supplier_id'
+    )
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit = models.CharField(max_length=50, default='пара')
+    quantity = models.IntegerField(default=0)
+    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    # Путь к файлу хранится строкой, не через ImageField
+    image = models.CharField(max_length=500, blank=True, default='')
 
     class Meta:
+        managed = False
         db_table = 'product'
-        verbose_name = 'Товар'
-        verbose_name_plural = 'Товары'
 
     def __str__(self):
         return self.name
 
     def get_final_price(self):
-        """Вычисляет итоговую цену с учётом скидки"""
+        """Итоговая цена с учётом скидки"""
         if self.discount > 0:
-            return self.price * (1 - self.discount / 100)
+            return round(self.price * (1 - self.discount / 100), 2)
         return self.price
 
     def has_discount(self):
-        """Проверяет, есть ли скидка на товар"""
         return self.discount > 0
 
     def is_big_discount(self):
-        """Проверяет, превышает ли скидка 15%"""
+        """Скидка превышает 15% — нужна зелёная подсветка"""
         return self.discount > 15
 
     def is_in_stock(self):
-        """Проверяет, есть ли товар на складе"""
         return self.quantity > 0
 
 
 class PickupPoint(models.Model):
-    """Пункт выдачи заказа"""
-    address = models.CharField(max_length=500, verbose_name='Адрес')
+    id = models.IntegerField(primary_key=True)
+    address = models.CharField(max_length=500)
 
     class Meta:
+        managed = False
         db_table = 'pickup_point'
-        verbose_name = 'Пункт выдачи'
-        verbose_name_plural = 'Пункты выдачи'
 
     def __str__(self):
         return self.address
 
 
 class Order(models.Model):
-    """Заказ"""
     STATUS_CHOICES = [
         ('new', 'Новый'),
         ('processing', 'В обработке'),
@@ -437,374 +462,394 @@ class Order(models.Model):
         ('cancelled', 'Отменён'),
     ]
 
-    article = models.CharField(max_length=100, unique=True, verbose_name='Артикул')
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='new', verbose_name='Статус')
+    id = models.IntegerField(primary_key=True)
+    article = models.CharField(max_length=100, unique=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='new')
     pickup_point = models.ForeignKey(
-        PickupPoint, on_delete=models.PROTECT, verbose_name='Пункт выдачи'
+        PickupPoint, on_delete=models.PROTECT, db_column='pickup_point_id'
     )
-    order_date = models.DateField(verbose_name='Дата заказа')
-    delivery_date = models.DateField(null=True, blank=True, verbose_name='Дата выдачи')
+    order_date = models.DateField()
+    delivery_date = models.DateField(null=True, blank=True)
 
     class Meta:
+        managed = False
         db_table = 'order'
-        verbose_name = 'Заказ'
-        verbose_name_plural = 'Заказы'
 
     def __str__(self):
         return f'Заказ {self.article}'
 
 
 class OrderItem(models.Model):
-    """Позиция в заказе (товар в заказе)"""
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name='Заказ')
-    product = models.ForeignKey(Product, on_delete=models.PROTECT, verbose_name='Товар')
+    id = models.IntegerField(primary_key=True)
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE,
+        db_column='order_id', related_name='items'
+    )
+    product = models.ForeignKey(
+        Product, on_delete=models.PROTECT, db_column='product_id'
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'order_item'
+```
+
+### Шаг А5 — Применить миграции (только для сессий)
+
+Таблицы уже созданы через SQL, Django их не трогает (`managed = False`).
+Нужно только создать таблицу сессий:
+
+```powershell
+python manage.py migrate
+```
+
+---
+
+## 5. ВАРИАНТ Б — Модели Django + миграции
+
+> Пишем модели в `models.py`, Django сам создаёт таблицы через миграции.  
+> **Плюсы:** чисто по-джанговски, не нужно писать SQL вручную.  
+> **Когда выбирать:** если хочешь работать только в Python без прямого SQL.
+
+### Шаг Б1 — Написать models.py
+
+Берём те же модели что в Варианте А, но:
+- убираем `id = models.IntegerField(primary_key=True)` из каждой модели — Django добавит `id` сам
+- убираем `managed = False` из каждого `Meta` — Django будет управлять таблицами
+- убираем `db_column='role_id'` и подобные — Django сам правильно назовёт колонки FK
+
+```python
+from django.db import models
+
+
+class Role(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    class Meta:
+        db_table = 'role'
+
+    def __str__(self):
+        return self.name
+
+
+class User(models.Model):
+    last_name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, blank=True, default='')
+    login = models.CharField(max_length=100, unique=True)
+    password = models.CharField(max_length=255)
+    role = models.ForeignKey(Role, on_delete=models.PROTECT)
+
+    class Meta:
+        db_table = 'user'
+
+    def __str__(self):
+        return f'{self.last_name} {self.first_name}'
+
+    def get_full_name(self):
+        """Возвращает полное ФИО пользователя"""
+        parts = [self.last_name, self.first_name]
+        if self.middle_name:
+            parts.append(self.middle_name)
+        return ' '.join(parts)
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        db_table = 'category'
+
+    def __str__(self):
+        return self.name
+
+
+class Manufacturer(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+
+    class Meta:
+        db_table = 'manufacturer'
+
+    def __str__(self):
+        return self.name
+
+
+class Supplier(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+
+    class Meta:
+        db_table = 'supplier'
+
+    def __str__(self):
+        return self.name
+
+
+class Product(models.Model):
+    name = models.CharField(max_length=200)
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    description = models.TextField(blank=True, default='')
+    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit = models.CharField(max_length=50, default='пара')
+    quantity = models.IntegerField(default=0)
+    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    image = models.CharField(max_length=500, blank=True, default='')
+
+    class Meta:
+        db_table = 'product'
+
+    def __str__(self):
+        return self.name
+
+    def get_final_price(self):
+        """Итоговая цена с учётом скидки"""
+        if self.discount > 0:
+            return round(self.price * (1 - self.discount / 100), 2)
+        return self.price
+
+    def has_discount(self):
+        return self.discount > 0
+
+    def is_big_discount(self):
+        """Скидка превышает 15% — нужна зелёная подсветка"""
+        return self.discount > 15
+
+    def is_in_stock(self):
+        return self.quantity > 0
+
+
+class PickupPoint(models.Model):
+    address = models.CharField(max_length=500)
+
+    class Meta:
+        db_table = 'pickup_point'
+
+    def __str__(self):
+        return self.address
+
+
+class Order(models.Model):
+    STATUS_CHOICES = [
+        ('new', 'Новый'),
+        ('processing', 'В обработке'),
+        ('ready', 'Готов к выдаче'),
+        ('completed', 'Выполнен'),
+        ('cancelled', 'Отменён'),
+    ]
+
+    article = models.CharField(max_length=100, unique=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='new')
+    pickup_point = models.ForeignKey(PickupPoint, on_delete=models.PROTECT)
+    order_date = models.DateField()
+    delivery_date = models.DateField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'order'
+
+    def __str__(self):
+        return f'Заказ {self.article}'
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
 
     class Meta:
         db_table = 'order_item'
-        verbose_name = 'Позиция заказа'
-        verbose_name_plural = 'Позиции заказов'
-
-    def __str__(self):
-        return f'{self.order} — {self.product}'
 ```
 
-### Шаг 5.2 — Выполнить миграции
+### Шаг Б2 — Создать и применить миграции
 
 ```powershell
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-Если всё прошло без ошибок — таблицы созданы в PostgreSQL.
-
-### Шаг 5.3 — Сгенерировать SQL-скрипт БД
+### Шаг Б3 — Заполнить начальные данные
 
 ```powershell
-# Создать дамп схемы (только структура, без данных)
-pg_dump -U postgres -s shoe_store > schema.sql
-
-# Создать полный дамп (структура + данные, после импорта CSV)
-pg_dump -U postgres shoe_store > full_dump.sql
+psql -U postgres -d shoe_store
 ```
 
-Если pg_dump не в PATH:
-```powershell
-& "C:\Program Files\PostgreSQL\16\bin\pg_dump.exe" -U postgres -s shoe_store > schema.sql
+```sql
+INSERT INTO role (name) VALUES ('guest'), ('client'), ('manager'), ('admin');
+
+INSERT INTO "user" (last_name, first_name, middle_name, login, password, role_id)
+VALUES ('Иванов', 'Иван', 'Иванович', 'admin', 'admin', 4);
+
+INSERT INTO "user" (last_name, first_name, middle_name, login, password, role_id)
+VALUES ('Петров', 'Пётр', 'Петрович', 'manager', 'manager', 3);
+
+INSERT INTO "user" (last_name, first_name, middle_name, login, password, role_id)
+VALUES ('Сидоров', 'Сидор', 'Сидорович', 'client', 'client', 2);
+\q
 ```
 
 ---
 
-## 6. Модуль 1 — Скрипт импорта CSV (вариатив)
+## 6. Скрипт импорта CSV (вариатив)
 
-Создать файл `core/management/commands/import_data.py`:
+Создать `core/management/commands/import_data.py`:
 
 ```python
 import csv
 import os
 from django.core.management.base import BaseCommand
-from core.models import Role, User, Category, Manufacturer, Supplier, Product, PickupPoint
+from core.models import (
+    Role, User, Category, Manufacturer, Supplier, Product, PickupPoint
+)
 
 
 class Command(BaseCommand):
-    """Management-команда для импорта данных из CSV файлов"""
-    help = 'Импорт данных из CSV файлов в базу данных'
+    """Импорт данных из CSV файлов в базу данных"""
+    help = 'Импорт данных из папки import_data/'
 
     def handle(self, *args, **options):
-        self.stdout.write('Начало импорта данных...')
+        self.stdout.write('Начало импорта...')
 
-        # Путь к папке с CSV файлами (положить рядом с manage.py)
-        csv_dir = os.path.join(os.path.dirname(os.path.dirname(
-            os.path.dirname(os.path.dirname(__file__))
-        )), 'import_data')
+        base_dir = os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        )
+        csv_dir = os.path.join(base_dir, 'import_data')
 
-        self.import_roles(csv_dir)
-        self.import_categories(csv_dir)
-        self.import_manufacturers(csv_dir)
-        self.import_suppliers(csv_dir)
-        self.import_users(csv_dir)
-        self.import_products(csv_dir)
-        self.import_pickup_points(csv_dir)
+        self.import_file(csv_dir, 'categories.csv',    self.import_category)
+        self.import_file(csv_dir, 'manufacturers.csv', self.import_manufacturer)
+        self.import_file(csv_dir, 'suppliers.csv',     self.import_supplier)
+        self.import_file(csv_dir, 'pickup_points.csv', self.import_pickup_point)
+        self.import_file(csv_dir, 'users.csv',         self.import_user)
+        self.import_file(csv_dir, 'products.csv',      self.import_product)
 
-        self.stdout.write(self.style.SUCCESS('Импорт завершён успешно!'))
+        self.stdout.write(self.style.SUCCESS('Импорт завершён!'))
 
-    def import_roles(self, csv_dir):
-        """Импорт ролей пользователей"""
-        file_path = os.path.join(csv_dir, 'roles.csv')
-        if not os.path.exists(file_path):
-            # Создаём роли по умолчанию если файл не найден
-            default_roles = ['guest', 'client', 'manager', 'admin']
-            for role_name in default_roles:
-                Role.objects.get_or_create(name=role_name)
-            self.stdout.write('Роли созданы по умолчанию')
+    def import_file(self, csv_dir, filename, row_handler):
+        """Читает CSV и вызывает обработчик для каждой строки"""
+        path = os.path.join(csv_dir, filename)
+        if not os.path.exists(path):
+            self.stdout.write(self.style.WARNING(f'Не найден: {filename}'))
             return
-
-        with open(file_path, encoding='utf-8') as f:
+        with open(path, encoding='utf-8') as f:
+            # Подстроить delimiter под реальный файл (';' или ',')
             reader = csv.DictReader(f, delimiter=';')
             for row in reader:
-                Role.objects.get_or_create(name=row['name'])
-        self.stdout.write('Роли импортированы')
+                row_handler(row)
+        self.stdout.write(f'Импортирован: {filename}')
 
-    def import_categories(self, csv_dir):
-        """Импорт категорий товаров"""
-        file_path = os.path.join(csv_dir, 'categories.csv')
-        if not os.path.exists(file_path):
-            self.stdout.write(self.style.WARNING(f'Файл {file_path} не найден, пропуск'))
-            return
+    def import_category(self, row):
+        Category.objects.get_or_create(name=row['name'])
 
-        with open(file_path, encoding='utf-8') as f:
-            reader = csv.DictReader(f, delimiter=';')
-            for row in reader:
-                Category.objects.get_or_create(name=row['name'])
-        self.stdout.write('Категории импортированы')
+    def import_manufacturer(self, row):
+        Manufacturer.objects.get_or_create(name=row['name'])
 
-    def import_manufacturers(self, csv_dir):
-        """Импорт производителей"""
-        file_path = os.path.join(csv_dir, 'manufacturers.csv')
-        if not os.path.exists(file_path):
-            self.stdout.write(self.style.WARNING(f'Файл {file_path} не найден, пропуск'))
-            return
+    def import_supplier(self, row):
+        Supplier.objects.get_or_create(name=row['name'])
 
-        with open(file_path, encoding='utf-8') as f:
-            reader = csv.DictReader(f, delimiter=';')
-            for row in reader:
-                Manufacturer.objects.get_or_create(name=row['name'])
-        self.stdout.write('Производители импортированы')
+    def import_pickup_point(self, row):
+        PickupPoint.objects.get_or_create(address=row['address'])
 
-    def import_suppliers(self, csv_dir):
-        """Импорт поставщиков"""
-        file_path = os.path.join(csv_dir, 'suppliers.csv')
-        if not os.path.exists(file_path):
-            self.stdout.write(self.style.WARNING(f'Файл {file_path} не найден, пропуск'))
-            return
+    def import_user(self, row):
+        role = Role.objects.get(name=row['role'])
+        User.objects.get_or_create(
+            login=row['login'],
+            defaults={
+                'last_name':   row['last_name'],
+                'first_name':  row['first_name'],
+                'middle_name': row.get('middle_name', ''),
+                'password':    row['password'],
+                'role':        role,
+            }
+        )
 
-        with open(file_path, encoding='utf-8') as f:
-            reader = csv.DictReader(f, delimiter=';')
-            for row in reader:
-                Supplier.objects.get_or_create(name=row['name'])
-        self.stdout.write('Поставщики импортированы')
-
-    def import_users(self, csv_dir):
-        """Импорт пользователей"""
-        file_path = os.path.join(csv_dir, 'users.csv')
-        if not os.path.exists(file_path):
-            self.stdout.write(self.style.WARNING(f'Файл {file_path} не найден, пропуск'))
-            return
-
-        with open(file_path, encoding='utf-8') as f:
-            reader = csv.DictReader(f, delimiter=';')
-            for row in reader:
-                role = Role.objects.get(name=row['role'])
-                User.objects.get_or_create(
-                    login=row['login'],
-                    defaults={
-                        'last_name': row['last_name'],
-                        'first_name': row['first_name'],
-                        'middle_name': row.get('middle_name', ''),
-                        'password': row['password'],
-                        'role': role,
-                    }
-                )
-        self.stdout.write('Пользователи импортированы')
-
-    def import_products(self, csv_dir):
-        """Импорт товаров"""
-        file_path = os.path.join(csv_dir, 'products.csv')
-        if not os.path.exists(file_path):
-            self.stdout.write(self.style.WARNING(f'Файл {file_path} не найден, пропуск'))
-            return
-
-        with open(file_path, encoding='utf-8') as f:
-            reader = csv.DictReader(f, delimiter=';')
-            for row in reader:
-                category = Category.objects.get(name=row['category'])
-                manufacturer = Manufacturer.objects.get(name=row['manufacturer'])
-                supplier = Supplier.objects.get(name=row['supplier'])
-                Product.objects.get_or_create(
-                    name=row['name'],
-                    defaults={
-                        'category': category,
-                        'description': row.get('description', ''),
-                        'manufacturer': manufacturer,
-                        'supplier': supplier,
-                        'price': row['price'],
-                        'unit': row.get('unit', 'пара'),
-                        'quantity': int(row.get('quantity', 0)),
-                        'discount': row.get('discount', 0),
-                    }
-                )
-        self.stdout.write('Товары импортированы')
-
-    def import_pickup_points(self, csv_dir):
-        """Импорт пунктов выдачи"""
-        file_path = os.path.join(csv_dir, 'pickup_points.csv')
-        if not os.path.exists(file_path):
-            self.stdout.write(self.style.WARNING(f'Файл {file_path} не найден, пропуск'))
-            return
-
-        with open(file_path, encoding='utf-8') as f:
-            reader = csv.DictReader(f, delimiter=';')
-            for row in reader:
-                PickupPoint.objects.get_or_create(address=row['address'])
-        self.stdout.write('Пункты выдачи импортированы')
+    def import_product(self, row):
+        category     = Category.objects.get(name=row['category'])
+        manufacturer = Manufacturer.objects.get(name=row['manufacturer'])
+        supplier     = Supplier.objects.get(name=row['supplier'])
+        Product.objects.get_or_create(
+            name=row['name'],
+            defaults={
+                'category':     category,
+                'description':  row.get('description', ''),
+                'manufacturer': manufacturer,
+                'supplier':     supplier,
+                'price':        row['price'],
+                'unit':         row.get('unit', 'пара'),
+                'quantity':     int(row.get('quantity', 0)),
+                'discount':     row.get('discount', 0),
+            }
+        )
 ```
 
-Запустить импорт:
-```powershell
-# Создать папку import_data рядом с manage.py и положить туда CSV файлы
-mkdir import_data
-# Скопировать CSV файлы из ресурсов экзамена в папку import_data
+> **На экзамене:** открой CSV в блокноте, смотри реальные заголовки и разделитель, подстрой `DictReader`.
 
+```powershell
 python manage.py import_data
 ```
 
-> **Важно:** структура CSV (разделитель, названия колонок) зависит от реальных файлов на экзамене.  
-> Открой CSV в блокноте и подстрой `DictReader` под реальные заголовки.
+---
+
+## 7. ER-диаграмма в PDF
+
+1. Открыть **draw.io** (десктоп или diagrams.net)
+2. New → Blank → добавить таблицы через Entity Relationship
+3. Добавить все 9 таблиц с полями, PK, FK
+4. Нарисовать связи:
+   - `user` → `role`
+   - `product` → `category`, `manufacturer`, `supplier`
+   - `order` → `pickup_point`
+   - `order_item` → `order`, `product`
+5. File → Export as → PDF → сохранить как `er_diagram.pdf`
 
 ---
 
-## 7. Модуль 2 — Авторизация и базовый интерфейс
+## 8. URLs и структура приложения
 
-### Шаг 7.1 — Создать базовый шаблон base.html
+### config/urls.py
 
-Создать `core/templates/core/base.html`:
+```python
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import path
+from core import views
 
-```html
-{% load static %}
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ООО Обувь{% endblock %}</title>
-    <!-- Иконка приложения -->
-    <link rel="icon" type="image/x-icon" href="{% static 'images/Icon.ico' %}">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body>
-    <!-- Шапка с логотипом и ФИО пользователя -->
-    <header class="header">
-        <div class="header-left">
-            <img src="{% static 'images/logo.png' %}" alt="Логотип ООО Обувь" class="logo">
-            <span class="company-name">ООО «Обувь»</span>
-        </div>
-        <div class="header-right">
-            {% if request.session.user_id %}
-                <!-- ФИО пользователя в правом верхнем углу -->
-                <span class="user-name">{{ request.session.user_full_name }}</span>
-                <a href="{% url 'logout' %}" class="btn-logout">Выйти</a>
-            {% endif %}
-        </div>
-    </header>
+urlpatterns = [
+    path('', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
 
-    <main class="main-content">
-        <!-- Сообщения об ошибках и успехе -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="message message-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
+    path('products/', views.product_list_view, name='product_list'),
+    path('products/add/', views.product_create_view, name='product_create'),
+    path('products/<int:pk>/edit/', views.product_update_view, name='product_edit'),
+    path('products/<int:pk>/delete/', views.product_delete_view, name='product_delete'),
 
-        {% block content %}{% endblock %}
-    </main>
-</body>
-</html>
+    path('orders/', views.order_list_view, name='order_list'),
+    path('orders/add/', views.order_create_view, name='order_create'),
+    path('orders/<int:pk>/edit/', views.order_update_view, name='order_edit'),
+    path('orders/<int:pk>/delete/', views.order_delete_view, name='order_delete'),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ```
 
-### Шаг 7.2 — Создать шаблон login.html
+---
 
-Создать `core/templates/core/login.html`:
+## 9. Views — авторизация
 
-```html
-{% load static %}
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Вход — ООО Обувь</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'images/Icon.ico' %}">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body>
-    <div class="login-page">
-        <!-- Логотип на главной форме -->
-        <div class="login-logo">
-            <img src="{% static 'images/logo.png' %}" alt="Логотип" class="logo-large">
-        </div>
-
-        <div class="login-container">
-            <h1 class="login-title">Вход в систему</h1>
-
-            <!-- Форма авторизации — CSRF токен обязателен -->
-            <form method="post" action="{% url 'login' %}">
-                {% csrf_token %}
-
-                {% if error %}
-                    <div class="error-message">{{ error }}</div>
-                {% endif %}
-
-                <div class="form-group">
-                    <label for="login">Логин:</label>
-                    <input type="text" id="login" name="login"
-                           placeholder="Введите логин" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Пароль:</label>
-                    <input type="password" id="password" name="password"
-                           placeholder="Введите пароль" required>
-                </div>
-
-                <div class="form-buttons">
-                    <button type="submit" class="btn btn-accent">Войти</button>
-                    <!-- Кнопка для входа как гость -->
-                    <a href="{% url 'products_guest' %}" class="btn btn-secondary">
-                        Войти как гость
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-</body>
-</html>
-```
-
-### Шаг 7.3 — Создать views.py
-
-Создать/заменить `core/views.py`:
+### core/views.py
 
 ```python
 import os
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.http import HttpResponseForbidden
-from PIL import Image
+from django.db.models import Q
+from PIL import Image as PilImage
 
-from .models import Product, Category, Manufacturer, Supplier, Order, PickupPoint, OrderItem
-from .forms import ProductForm, OrderForm
+from .models import (
+    User, Product, Category, Manufacturer,
+    Supplier, Order, PickupPoint, OrderItem
+)
 
-
-# ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
-
-def get_current_user_role(request):
-    """Получает роль текущего пользователя из сессии"""
-    return request.session.get('user_role', 'guest')
-
-
-def require_role(view_func, allowed_roles):
-    """Декоратор: проверяет роль пользователя"""
-    def wrapper(request, *args, **kwargs):
-        role = get_current_user_role(request)
-        if role not in allowed_roles:
-            messages.error(request, 'У вас нет доступа к этой странице.')
-            return redirect('login')
-        return view_func(request, *args, **kwargs)
-    return wrapper
-
-
-# ==================== АВТОРИЗАЦИЯ ====================
 
 def login_view(request):
-    """Страница входа в систему"""
+    """Страница входа — первое что видит пользователь"""
     if request.method == 'POST':
         login = request.POST.get('login', '').strip()
         password = request.POST.get('password', '').strip()
@@ -815,40 +860,43 @@ def login_view(request):
             })
 
         try:
-            from .models import User
-            user = User.objects.select_related('role').get(login=login, password=password)
-            # Сохраняем данные пользователя в сессию
+            user = User.objects.select_related('role').get(
+                login=login, password=password
+            )
             request.session['user_id'] = user.id
             request.session['user_role'] = user.role.name
             request.session['user_full_name'] = user.get_full_name()
             return redirect('product_list')
-        except Exception:
+        except User.DoesNotExist:
             return render(request, 'core/login.html', {
-                'error': 'Неверный логин или пароль. Проверьте введённые данные.'
+                'error': 'Неверный логин или пароль.'
             })
 
     return render(request, 'core/login.html')
 
 
 def logout_view(request):
-    """Выход из системы — очищаем сессию"""
+    """Выход — очищаем сессию"""
     request.session.flush()
     return redirect('login')
+```
 
+---
 
-# ==================== СПИСОК ТОВАРОВ ====================
+## 10. Views — список товаров
 
+```python
 def product_list_view(request):
     """
-    Список товаров.
-    Доступен всем ролям, но поиск/фильтр/сортировка только менеджеру и администратору.
+    Список товаров для всех ролей.
+    Поиск/фильтр/сортировка — только менеджер и администратор.
     """
-    role = get_current_user_role(request)
+    role = request.session.get('user_role', 'guest')
+
     products = Product.objects.select_related(
         'category', 'manufacturer', 'supplier'
     ).all()
 
-    # Поиск, фильтрация, сортировка только для менеджера и администратора
     search_query = ''
     supplier_filter = ''
     sort_by = ''
@@ -857,7 +905,6 @@ def product_list_view(request):
         # Поиск по всем текстовым полям одновременно
         search_query = request.GET.get('search', '').strip()
         if search_query:
-            from django.db.models import Q
             products = products.filter(
                 Q(name__icontains=search_query) |
                 Q(description__icontains=search_query) |
@@ -867,7 +914,7 @@ def product_list_view(request):
                 Q(unit__icontains=search_query)
             )
 
-        # Фильтрация по поставщику
+        # Фильтр по поставщику
         supplier_filter = request.GET.get('supplier', '').strip()
         if supplier_filter:
             products = products.filter(supplier__name=supplier_filter)
@@ -879,10 +926,9 @@ def product_list_view(request):
         elif sort_by == 'quantity_desc':
             products = products.order_by('-quantity')
 
-    # Все поставщики для выпадающего списка фильтра
     suppliers = Supplier.objects.all()
 
-    context = {
+    return render(request, 'core/product_list.html', {
         'products': products,
         'role': role,
         'suppliers': suppliers,
@@ -890,51 +936,367 @@ def product_list_view(request):
         'supplier_filter': supplier_filter,
         'sort_by': sort_by,
         'user_full_name': request.session.get('user_full_name', ''),
-    }
-    return render(request, 'core/product_list.html', context)
-```
-
-### Шаг 7.4 — Настроить URLs
-
-Открыть `config/urls.py`:
-
-```python
-from django.conf import settings
-from django.conf.urls.static import static
-from django.urls import path
-from core import views
-
-urlpatterns = [
-    # Авторизация
-    path('', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
-
-    # Товары
-    path('products/', views.product_list_view, name='product_list'),
-    path('products/guest/', views.product_list_view, name='products_guest'),
-    path('products/add/', views.product_create_view, name='product_create'),
-    path('products/<int:pk>/edit/', views.product_update_view, name='product_edit'),
-    path('products/<int:pk>/delete/', views.product_delete_view, name='product_delete'),
-
-    # Заказы
-    path('orders/', views.order_list_view, name='order_list'),
-    path('orders/add/', views.order_create_view, name='order_create'),
-    path('orders/<int:pk>/edit/', views.order_update_view, name='order_edit'),
-    path('orders/<int:pk>/delete/', views.order_delete_view, name='order_delete'),
-]
-
-# Раздача медиафайлов в режиме разработки
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    })
 ```
 
 ---
 
-## 8. Модуль 2 — Список товаров с подсветкой
+## 11. Views — форма добавления/редактирования товара
 
-### Шаг 8.1 — Создать шаблон product_list.html
+```python
+def product_create_view(request):
+    """Добавление товара — только администратор"""
+    if request.session.get('user_role') != 'admin':
+        return redirect('login')
 
-Создать `core/templates/core/product_list.html`:
+    categories = Category.objects.all()
+    manufacturers = Manufacturer.objects.all()
+    suppliers = Supplier.objects.all()
+    errors = {}
+
+    if request.method == 'POST':
+        name            = request.POST.get('name', '').strip()
+        category_id     = request.POST.get('category')
+        description     = request.POST.get('description', '').strip()
+        manufacturer_id = request.POST.get('manufacturer')
+        supplier_id     = request.POST.get('supplier')
+        price           = request.POST.get('price', '').strip()
+        unit            = request.POST.get('unit', '').strip()
+        quantity        = request.POST.get('quantity', '').strip()
+        discount        = request.POST.get('discount', '0').strip()
+
+        if not name:
+            errors['name'] = 'Укажите наименование товара.'
+        try:
+            price_val = float(price)
+            if price_val < 0:
+                errors['price'] = 'Цена не может быть отрицательной.'
+        except ValueError:
+            errors['price'] = 'Введите корректную цену.'
+        try:
+            quantity_val = int(quantity)
+            if quantity_val < 0:
+                errors['quantity'] = 'Количество не может быть отрицательным.'
+        except ValueError:
+            errors['quantity'] = 'Введите корректное количество.'
+
+        if not errors:
+            product = Product(
+                name=name,
+                category_id=category_id,
+                description=description,
+                manufacturer_id=manufacturer_id,
+                supplier_id=supplier_id,
+                price=price_val,
+                unit=unit,
+                quantity=quantity_val,
+                discount=float(discount) if discount else 0,
+            )
+            if 'image' in request.FILES:
+                product.image = save_product_image(request.FILES['image'])
+            product.save()
+            return redirect('product_list')
+
+    return render(request, 'core/product_form.html', {
+        'categories': categories,
+        'manufacturers': manufacturers,
+        'suppliers': suppliers,
+        'errors': errors,
+        'title': 'Добавить товар',
+        'is_create': True,
+        'role': request.session.get('user_role'),
+        'user_full_name': request.session.get('user_full_name', ''),
+    })
+
+
+def product_update_view(request, pk):
+    """Редактирование товара — только администратор"""
+    if request.session.get('user_role') != 'admin':
+        return redirect('login')
+
+    product = get_object_or_404(Product, pk=pk)
+    categories = Category.objects.all()
+    manufacturers = Manufacturer.objects.all()
+    suppliers = Supplier.objects.all()
+    errors = {}
+
+    if request.method == 'POST':
+        name            = request.POST.get('name', '').strip()
+        category_id     = request.POST.get('category')
+        description     = request.POST.get('description', '').strip()
+        manufacturer_id = request.POST.get('manufacturer')
+        supplier_id     = request.POST.get('supplier')
+        price           = request.POST.get('price', '').strip()
+        unit            = request.POST.get('unit', '').strip()
+        quantity        = request.POST.get('quantity', '').strip()
+        discount        = request.POST.get('discount', '0').strip()
+
+        if not name:
+            errors['name'] = 'Укажите наименование товара.'
+        try:
+            price_val = float(price)
+            if price_val < 0:
+                errors['price'] = 'Цена не может быть отрицательной.'
+        except ValueError:
+            errors['price'] = 'Введите корректную цену.'
+        try:
+            quantity_val = int(quantity)
+            if quantity_val < 0:
+                errors['quantity'] = 'Количество не может быть отрицательным.'
+        except ValueError:
+            errors['quantity'] = 'Введите корректное количество.'
+
+        if not errors:
+            product.name            = name
+            product.category_id     = category_id
+            product.description     = description
+            product.manufacturer_id = manufacturer_id
+            product.supplier_id     = supplier_id
+            product.price           = price_val
+            product.unit            = unit
+            product.quantity        = quantity_val
+            product.discount        = float(discount) if discount else 0
+
+            if 'image' in request.FILES:
+                # Удаляем старое фото с диска
+                if product.image:
+                    old_path = os.path.join('media', product.image)
+                    if os.path.isfile(old_path):
+                        os.remove(old_path)
+                product.image = save_product_image(request.FILES['image'])
+
+            product.save()
+            return redirect('product_list')
+
+    return render(request, 'core/product_form.html', {
+        'product': product,
+        'categories': categories,
+        'manufacturers': manufacturers,
+        'suppliers': suppliers,
+        'errors': errors,
+        'title': f'Редактировать: {product.name}',
+        'is_create': False,
+        'role': request.session.get('user_role'),
+        'user_full_name': request.session.get('user_full_name', ''),
+    })
+
+
+def save_product_image(image_file):
+    """
+    Сохраняет фото товара с ресайзом до 300x200 через Pillow.
+    Возвращает относительный путь для хранения в БД.
+    """
+    img = PilImage.open(image_file)
+    img = img.resize((300, 200), PilImage.LANCZOS)
+
+    save_path = os.path.join('media', 'products', image_file.name)
+    img.save(save_path)
+
+    return f'products/{image_file.name}'
+```
+
+---
+
+## 12. Views — удаление товара
+
+```python
+def product_delete_view(request, pk):
+    """Удаление товара — только администратор"""
+    if request.session.get('user_role') != 'admin':
+        return redirect('login')
+
+    product = get_object_or_404(Product, pk=pk)
+
+    if request.method == 'POST':
+        # Нельзя удалить товар, который есть в заказах
+        if OrderItem.objects.filter(product=product).exists():
+            return render(request, 'core/product_list.html', {
+                'error': (
+                    f'Нельзя удалить товар «{product.name}»: '
+                    f'он присутствует в заказах.'
+                ),
+                'products': Product.objects.select_related(
+                    'category', 'manufacturer', 'supplier'
+                ).all(),
+                'suppliers': Supplier.objects.all(),
+                'role': request.session.get('user_role'),
+                'user_full_name': request.session.get('user_full_name', ''),
+            })
+
+        # Удаляем фото с диска
+        if product.image:
+            image_path = os.path.join('media', product.image)
+            if os.path.isfile(image_path):
+                os.remove(image_path)
+
+        product.delete()
+        return redirect('product_list')
+
+    return redirect('product_list')
+```
+
+---
+
+## 13. Views — заказы
+
+```python
+def order_list_view(request):
+    """Список заказов — менеджер и администратор"""
+    if request.session.get('user_role') not in ('manager', 'admin'):
+        return redirect('login')
+
+    orders = Order.objects.select_related('pickup_point').all()
+
+    return render(request, 'core/order_list.html', {
+        'orders': orders,
+        'role': request.session.get('user_role'),
+        'user_full_name': request.session.get('user_full_name', ''),
+    })
+
+
+def order_create_view(request):
+    """Добавление заказа — только администратор"""
+    if request.session.get('user_role') != 'admin':
+        return redirect('login')
+
+    pickup_points = PickupPoint.objects.all()
+    errors = {}
+
+    if request.method == 'POST':
+        article         = request.POST.get('article', '').strip()
+        status          = request.POST.get('status', 'new')
+        pickup_point_id = request.POST.get('pickup_point')
+        order_date      = request.POST.get('order_date')
+        delivery_date   = request.POST.get('delivery_date') or None
+
+        if not article:
+            errors['article'] = 'Укажите артикул заказа.'
+        if not order_date:
+            errors['order_date'] = 'Укажите дату заказа.'
+
+        if not errors:
+            Order.objects.create(
+                article=article,
+                status=status,
+                pickup_point_id=pickup_point_id,
+                order_date=order_date,
+                delivery_date=delivery_date,
+            )
+            return redirect('order_list')
+
+    return render(request, 'core/order_form.html', {
+        'pickup_points': pickup_points,
+        'errors': errors,
+        'status_choices': Order.STATUS_CHOICES,
+        'title': 'Добавить заказ',
+        'is_create': True,
+        'role': request.session.get('user_role'),
+        'user_full_name': request.session.get('user_full_name', ''),
+    })
+
+
+def order_update_view(request, pk):
+    """Редактирование заказа — только администратор"""
+    if request.session.get('user_role') != 'admin':
+        return redirect('login')
+
+    order = get_object_or_404(Order, pk=pk)
+    pickup_points = PickupPoint.objects.all()
+    errors = {}
+
+    if request.method == 'POST':
+        article         = request.POST.get('article', '').strip()
+        status          = request.POST.get('status', 'new')
+        pickup_point_id = request.POST.get('pickup_point')
+        order_date      = request.POST.get('order_date')
+        delivery_date   = request.POST.get('delivery_date') or None
+
+        if not article:
+            errors['article'] = 'Укажите артикул заказа.'
+        if not order_date:
+            errors['order_date'] = 'Укажите дату заказа.'
+
+        if not errors:
+            order.article          = article
+            order.status           = status
+            order.pickup_point_id  = pickup_point_id
+            order.order_date       = order_date
+            order.delivery_date    = delivery_date
+            order.save()
+            return redirect('order_list')
+
+    return render(request, 'core/order_form.html', {
+        'order': order,
+        'pickup_points': pickup_points,
+        'errors': errors,
+        'status_choices': Order.STATUS_CHOICES,
+        'title': f'Редактировать заказ: {order.article}',
+        'is_create': False,
+        'role': request.session.get('user_role'),
+        'user_full_name': request.session.get('user_full_name', ''),
+    })
+
+
+def order_delete_view(request, pk):
+    """Удаление заказа — только администратор"""
+    if request.session.get('user_role') != 'admin':
+        return redirect('login')
+
+    order = get_object_or_404(Order, pk=pk)
+
+    if request.method == 'POST':
+        order.delete()
+        return redirect('order_list')
+
+    return redirect('order_list')
+```
+
+---
+
+## 14. Шаблоны и CSS
+
+### core/templates/core/login.html
+
+```html
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход — ООО Обувь</title>
+    <link rel="icon" href="{% static 'images/Icon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<div class="login-page">
+    <img src="{% static 'images/logo.png' %}" alt="Логотип" class="logo-large">
+    <div class="login-box">
+        <h1>Вход в систему</h1>
+        {% if error %}
+            <div class="msg-error">{{ error }}</div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="field">
+                <label>Логин</label>
+                <input type="text" name="login" required>
+            </div>
+            <div class="field">
+                <label>Пароль</label>
+                <input type="password" name="password" required>
+            </div>
+            <div class="row-btns">
+                <button type="submit" class="btn-accent">Войти</button>
+                <a href="{% url 'product_list' %}" class="btn-secondary">Войти как гость</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+```
+
+### core/templates/core/product_list.html
 
 ```html
 {% load static %}
@@ -943,793 +1305,145 @@ if settings.DEBUG:
 <head>
     <meta charset="UTF-8">
     <title>Список товаров — ООО Обувь</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'images/Icon.ico' %}">
+    <link rel="icon" href="{% static 'images/Icon.ico' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <header class="header">
-        <div class="header-left">
-            <img src="{% static 'images/logo.png' %}" alt="Логотип" class="logo">
-            <span class="company-name">ООО «Обувь»</span>
-        </div>
-        <div class="header-right">
-            {% if user_full_name %}
-                <span class="user-name">{{ user_full_name }}</span>
-            {% endif %}
-            {% if role != 'guest' %}
-                <a href="{% url 'logout' %}" class="btn btn-secondary">Выйти</a>
-            {% else %}
-                <a href="{% url 'login' %}" class="btn btn-accent">Войти</a>
-            {% endif %}
-        </div>
-    </header>
+<header class="header">
+    <div class="header-left">
+        <img src="{% static 'images/logo.png' %}" alt="Логотип" class="logo">
+        <span>ООО «Обувь»</span>
+    </div>
+    <div class="header-right">
+        {% if user_full_name %}<span class="username">{{ user_full_name }}</span>{% endif %}
+        {% if role != 'guest' %}
+            <a href="{% url 'logout' %}" class="btn-secondary">Выйти</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn-accent">Войти</a>
+        {% endif %}
+    </div>
+</header>
 
-    <main class="main-content">
-        <div class="page-header">
-            <h1>Список товаров</h1>
-            <div class="header-actions">
-                <!-- Кнопка "Заказы" для менеджера и администратора -->
-                {% if role in 'manager admin' or role == 'manager' or role == 'admin' %}
-                    <a href="{% url 'order_list' %}" class="btn btn-secondary">Заказы</a>
-                {% endif %}
-                <!-- Кнопка "Добавить товар" только для администратора -->
-                {% if role == 'admin' %}
-                    <a href="{% url 'product_create' %}" class="btn btn-accent">+ Добавить товар</a>
+<main>
+    <div class="page-top">
+        <h1>Список товаров</h1>
+        <div class="row-btns">
+            {% if role == 'manager' or role == 'admin' %}
+                <a href="{% url 'order_list' %}" class="btn-secondary">Заказы</a>
+            {% endif %}
+            {% if role == 'admin' %}
+                <a href="{% url 'product_create' %}" class="btn-accent">+ Добавить товар</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if error %}
+        <div class="msg-error">{{ error }}</div>
+    {% endif %}
+
+    {% if role == 'manager' or role == 'admin' %}
+    <div class="filters">
+        <input type="text" id="search" placeholder="Поиск по всем полям..."
+               value="{{ search_query }}">
+        <select id="supplier">
+            <option value="">Все поставщики</option>
+            {% for s in suppliers %}
+                <option value="{{ s.name }}"
+                    {% if s.name == supplier_filter %}selected{% endif %}>
+                    {{ s.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <select id="sort">
+            <option value="">Без сортировки</option>
+            <option value="quantity_asc"
+                {% if sort_by == 'quantity_asc' %}selected{% endif %}>Количество ↑</option>
+            <option value="quantity_desc"
+                {% if sort_by == 'quantity_desc' %}selected{% endif %}>Количество ↓</option>
+        </select>
+    </div>
+    {% endif %}
+
+    {% for product in products %}
+    <div class="product-card
+        {% if product.is_big_discount %}card-green
+        {% elif not product.is_in_stock %}card-blue{% endif %}"
+        {% if role == 'admin' %}
+            onclick="location.href='{% url 'product_edit' product.pk %}'"
+            style="cursor:pointer"
+        {% endif %}>
+
+        <div class="product-img">
+            {% if product.image %}
+                <img src="/media/{{ product.image }}" alt="{{ product.name }}">
+            {% else %}
+                <img src="{% static 'images/picture.png' %}" alt="Нет фото">
+            {% endif %}
+        </div>
+
+        <div class="product-info">
+            <strong>{{ product.category.name }} | {{ product.name }}</strong>
+            <div>Описание: {{ product.description|default:"—" }}</div>
+            <div>Производитель: {{ product.manufacturer.name }}</div>
+            <div>Поставщик: {{ product.supplier.name }}</div>
+            <div class="price-row">
+                {% if product.has_discount %}
+                    <span class="price-old">{{ product.price }} ₽</span>
+                    <span class="price-new">{{ product.get_final_price }} ₽</span>
+                {% else %}
+                    <span>{{ product.price }} ₽</span>
                 {% endif %}
             </div>
+            <div>Единица измерения: {{ product.unit }}</div>
+            <div>Количество на складе: {{ product.quantity }}</div>
         </div>
 
-        <!-- Панель поиска/фильтрации/сортировки (только менеджер и администратор) -->
-        {% if role == 'manager' or role == 'admin' %}
-        <div class="filters-panel">
-            <!-- Поиск в реальном времени через JavaScript -->
-            <input type="text" id="search-input" placeholder="Поиск по всем полям..."
-                   value="{{ search_query }}" class="search-input">
+        <div class="product-discount">
+            {% if product.has_discount %}{{ product.discount }}%{% else %}—{% endif %}
+        </div>
 
-            <!-- Фильтр по поставщику -->
-            <select id="supplier-filter" class="filter-select">
-                <option value="">Все поставщики</option>
-                {% for supplier in suppliers %}
-                    <option value="{{ supplier.name }}"
-                        {% if supplier.name == supplier_filter %}selected{% endif %}>
-                        {{ supplier.name }}
-                    </option>
-                {% endfor %}
-            </select>
-
-            <!-- Сортировка по количеству -->
-            <select id="sort-select" class="filter-select">
-                <option value="">Без сортировки</option>
-                <option value="quantity_asc" {% if sort_by == 'quantity_asc' %}selected{% endif %}>
-                    Количество ↑
-                </option>
-                <option value="quantity_desc" {% if sort_by == 'quantity_desc' %}selected{% endif %}>
-                    Количество ↓
-                </option>
-            </select>
+        {% if role == 'admin' %}
+        <div class="product-del" onclick="event.stopPropagation()">
+            <form method="post" action="{% url 'product_delete' product.pk %}"
+                  onsubmit="return confirm('Удалить товар «{{ product.name }}»?')">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger">Удалить</button>
+            </form>
         </div>
         {% endif %}
+    </div>
+    {% empty %}
+        <p class="empty">Товары не найдены.</p>
+    {% endfor %}
+</main>
 
-        <!-- Таблица товаров -->
-        <div class="products-list">
-            {% for product in products %}
-                <!--
-                    Логика подсветки строк:
-                    - скидка > 15%: зелёный фон #2E8B57
-                    - нет на складе: голубой фон
-                    - иначе: белый фон
-                -->
-                <div class="product-card
-                    {% if product.is_big_discount %}product-big-discount
-                    {% elif not product.is_in_stock %}product-out-of-stock
-                    {% endif %}"
-                    {% if role == 'admin' %}
-                        onclick="window.location='{% url 'product_edit' product.pk %}'"
-                        style="cursor: pointer;"
-                    {% endif %}>
+{% if role == 'manager' or role == 'admin' %}
+<script>
+    function applyFilters() {
+        const params = new URLSearchParams();
+        const search   = document.getElementById('search').value;
+        const supplier = document.getElementById('supplier').value;
+        const sort     = document.getElementById('sort').value;
+        if (search)   params.set('search', search);
+        if (supplier) params.set('supplier', supplier);
+        if (sort)     params.set('sort', sort);
+        window.location.href = '/products/?' + params.toString();
+    }
 
-                    <!-- Фото товара -->
-                    <div class="product-image">
-                        {% if product.image %}
-                            <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                        {% else %}
-                            <!-- Заглушка при отсутствии изображения -->
-                            <img src="{% static 'images/picture.png' %}" alt="Нет фото">
-                        {% endif %}
-                    </div>
-
-                    <!-- Информация о товаре -->
-                    <div class="product-info">
-                        <div class="product-title">
-                            <strong>{{ product.category.name }} | {{ product.name }}</strong>
-                        </div>
-                        <div>Описание: {{ product.description|default:"—" }}</div>
-                        <div>Производитель: {{ product.manufacturer.name }}</div>
-                        <div>Поставщик: {{ product.supplier.name }}</div>
-
-                        <!-- Цена: перечёркнутая если есть скидка -->
-                        <div class="product-price">
-                            {% if product.has_discount %}
-                                <span class="price-original">{{ product.price }} ₽</span>
-                                <span class="price-final">{{ product.get_final_price|floatformat:2 }} ₽</span>
-                            {% else %}
-                                <span>{{ product.price }} ₽</span>
-                            {% endif %}
-                        </div>
-
-                        <div>Единица измерения: {{ product.unit }}</div>
-                        <div>Количество на складе: {{ product.quantity }}</div>
-                    </div>
-
-                    <!-- Скидка -->
-                    <div class="product-discount">
-                        {% if product.has_discount %}
-                            {{ product.discount }}%
-                        {% else %}
-                            —
-                        {% endif %}
-                    </div>
-
-                    <!-- Кнопка удаления (только администратор) -->
-                    {% if role == 'admin' %}
-                        <div class="product-actions" onclick="event.stopPropagation()">
-                            <form method="post" action="{% url 'product_delete' product.pk %}"
-                                  onsubmit="return confirm('Удалить товар «{{ product.name }}»? Это действие необратимо.')">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger">Удалить</button>
-                            </form>
-                        </div>
-                    {% endif %}
-                </div>
-            {% empty %}
-                <p class="no-results">Товары не найдены.</p>
-            {% endfor %}
-        </div>
-    </main>
-
-    <!-- JavaScript для поиска/фильтрации/сортировки в реальном времени -->
-    {% if role == 'manager' or role == 'admin' %}
-    <script>
-        // Функция обновления URL с параметрами без перезагрузки страницы
-        function updateFilters() {
-            const search = document.getElementById('search-input').value;
-            const supplier = document.getElementById('supplier-filter').value;
-            const sort = document.getElementById('sort-select').value;
-
-            // Перезагружаем страницу с новыми параметрами
-            const params = new URLSearchParams();
-            if (search) params.set('search', search);
-            if (supplier) params.set('supplier', supplier);
-            if (sort) params.set('sort', sort);
-
-            window.location.href = '/products/?' + params.toString();
-        }
-
-        // Поиск в реальном времени (с небольшой задержкой debounce)
-        let searchTimeout;
-        document.getElementById('search-input').addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(updateFilters, 300);
-        });
-
-        // Фильтр и сортировка срабатывают сразу при изменении
-        document.getElementById('supplier-filter').addEventListener('change', updateFilters);
-        document.getElementById('sort-select').addEventListener('change', updateFilters);
-    </script>
-    {% endif %}
+    let timer;
+    document.getElementById('search').addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(applyFilters, 300);
+    });
+    document.getElementById('supplier').addEventListener('change', applyFilters);
+    document.getElementById('sort').addEventListener('change', applyFilters);
+</script>
+{% endif %}
 </body>
 </html>
 ```
 
-### Шаг 8.2 — Создать CSS стили
-
-Создать `static/css/style.css`:
-
-```css
-/* Основные настройки — шрифт Times New Roman, белый фон */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: 'Times New Roman', Times, serif;
-    background-color: #FFFFFF;   /* Основной фон */
-    color: #333;
-}
-
-/* ========== ШАПКА ========== */
-.header {
-    background-color: #7FFF00;   /* Дополнительный фон */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    border-bottom: 2px solid #ccc;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.logo {
-    height: 50px;
-    width: auto;       /* Сохраняем пропорции логотипа */
-    object-fit: contain;
-}
-
-.logo-large {
-    height: 80px;
-    width: auto;
-    object-fit: contain;
-}
-
-.company-name {
-    font-size: 1.3em;
-    font-weight: bold;
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.user-name {
-    font-weight: bold;
-    font-size: 1em;
-}
-
-/* ========== КНОПКИ ========== */
-.btn {
-    display: inline-block;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 1em;
-    text-decoration: none;
-    text-align: center;
-}
-
-.btn-accent {
-    background-color: #00FA9A;   /* Акцентирование внимания */
-    color: #000;
-}
-
-.btn-secondary {
-    background-color: #7FFF00;   /* Дополнительный фон */
-    color: #000;
-}
-
-.btn-danger {
-    background-color: #dc3545;
-    color: #fff;
-}
-
-.btn-logout {
-    background-color: #f8f9fa;
-    color: #333;
-    padding: 6px 12px;
-    border-radius: 4px;
-    text-decoration: none;
-    border: 1px solid #ccc;
-}
-
-/* ========== ОСНОВНОЕ СОДЕРЖИМОЕ ========== */
-.main-content {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.header-actions {
-    display: flex;
-    gap: 10px;
-}
-
-/* ========== СТРАНИЦА ВХОДА ========== */
-.login-page {
-    min-height: 100vh;
-    background-color: #7FFF00;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.login-logo {
-    margin-bottom: 20px;
-}
-
-.login-container {
-    background-color: #FFFFFF;
-    padding: 30px;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 400px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.login-title {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 1.5em;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 1em;
-}
-
-.form-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-.error-message {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 15px;
-    border: 1px solid #f5c6cb;
-}
-
-/* ========== ПАНЕЛЬ ФИЛЬТРОВ ========== */
-.filters-panel {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.search-input {
-    flex: 1;
-    min-width: 200px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 1em;
-}
-
-.filter-select {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 1em;
-}
-
-/* ========== КАРТОЧКА ТОВАРА ========== */
-.products-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.product-card {
-    display: flex;
-    align-items: stretch;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: #FFFFFF;
-    overflow: hidden;
-}
-
-/* Скидка > 15% — зелёный фон */
-.product-big-discount {
-    background-color: #2E8B57;
-    color: #fff;
-}
-
-/* Нет на складе — голубой фон */
-.product-out-of-stock {
-    background-color: lightblue;
-}
-
-.product-image {
-    width: 120px;
-    min-width: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    background-color: rgba(255,255,255,0.3);
-}
-
-.product-image img {
-    width: 100px;
-    height: 80px;
-    object-fit: contain;
-}
-
-.product-info {
-    flex: 1;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.product-title {
-    font-size: 1.1em;
-    margin-bottom: 5px;
-}
-
-/* Цена со скидкой */
-.price-original {
-    text-decoration: line-through;   /* Перечёркнутая цена */
-    color: red;                        /* Красный шрифт */
-    margin-right: 8px;
-}
-
-.price-final {
-    color: black;                      /* Итоговая цена чёрным */
-    font-weight: bold;
-}
-
-.product-discount {
-    width: 80px;
-    min-width: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    font-size: 1.1em;
-    font-weight: bold;
-    border-left: 1px solid #ccc;
-}
-
-.product-actions {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border-left: 1px solid #ccc;
-}
-
-.no-results {
-    text-align: center;
-    color: #666;
-    padding: 40px;
-    font-size: 1.2em;
-}
-
-/* ========== ФОРМА ТОВАРА ========== */
-.form-container {
-    max-width: 700px;
-    margin: 0 auto;
-}
-
-.form-container h1 {
-    margin-bottom: 20px;
-}
-
-.form-image-preview {
-    width: 300px;
-    height: 200px;
-    object-fit: contain;
-    border: 1px solid #ccc;
-    margin-bottom: 10px;
-}
-
-.field-readonly {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
-}
-
-/* ========== СПИСОК ЗАКАЗОВ ========== */
-.order-card {
-    display: flex;
-    align-items: stretch;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: #FFFFFF;
-    margin-bottom: 10px;
-    overflow: hidden;
-}
-
-.order-info {
-    flex: 1;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.order-delivery {
-    width: 150px;
-    min-width: 150px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    border-left: 1px solid #ccc;
-    font-weight: bold;
-}
-
-/* ========== СООБЩЕНИЯ ========== */
-.message {
-    padding: 10px 15px;
-    border-radius: 4px;
-    margin-bottom: 15px;
-}
-
-.message-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.message-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-.message-warning {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
-}
-```
-
----
-
-## 9. Модуль 3 — Поиск, фильтрация, сортировка
-
-Поиск, фильтрация и сортировка уже реализованы в `product_list_view` (шаг 7.3) и в шаблоне (шаг 8.1) через JavaScript. Убедиться что:
-
-- Поиск работает по всем текстовым полям одновременно (`Q` объекты в `filter`)
-- Фильтр по поставщику: первый элемент "Все поставщики" (value=""), при выборе которого фильтр сбрасывается
-- Сортировка по количеству: вверх/вниз
-- Всё происходит в реальном времени через `debounce` 300ms в JavaScript
-- Параметры сортировки сохраняются при изменении поиска и фильтра (через `URLSearchParams`)
-
----
-
-## 10. Модуль 3 — Форма добавления/редактирования товара + Pillow
-
-### Шаг 10.1 — Создать forms.py
-
-Создать `core/forms.py`:
-
-```python
-from django import forms
-from .models import Product, Order, PickupPoint
-
-
-class ProductForm(forms.ModelForm):
-    """Форма добавления/редактирования товара"""
-
-    class Meta:
-        model = Product
-        fields = [
-            'name', 'category', 'description', 'manufacturer',
-            'supplier', 'price', 'unit', 'quantity', 'discount', 'image'
-        ]
-        widgets = {
-            'name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Введите наименование товара'
-            }),
-            'category': forms.Select(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Введите описание товара'
-            }),
-            'manufacturer': forms.Select(attrs={'class': 'form-control'}),
-            'supplier': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Введите поставщика'
-            }),
-            'price': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '0',
-                'step': '0.01',
-                'placeholder': '0.00'
-            }),
-            'unit': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Например: пара, штука'
-            }),
-            'quantity': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '0',
-                'placeholder': '0'
-            }),
-            'discount': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '0',
-                'max': '100',
-                'step': '0.01',
-                'placeholder': '0.00'
-            }),
-            'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-        }
-
-    def clean_price(self):
-        """Цена не может быть отрицательной"""
-        price = self.cleaned_data.get('price')
-        if price is not None and price < 0:
-            raise forms.ValidationError('Цена не может быть отрицательной.')
-        return price
-
-    def clean_quantity(self):
-        """Количество не может быть отрицательным"""
-        quantity = self.cleaned_data.get('quantity')
-        if quantity is not None and quantity < 0:
-            raise forms.ValidationError('Количество не может быть отрицательным.')
-        return quantity
-
-    def clean_discount(self):
-        """Скидка должна быть от 0 до 100"""
-        discount = self.cleaned_data.get('discount')
-        if discount is not None and (discount < 0 or discount > 100):
-            raise forms.ValidationError('Скидка должна быть от 0 до 100.')
-        return discount
-
-
-class OrderForm(forms.ModelForm):
-    """Форма добавления/редактирования заказа"""
-
-    class Meta:
-        model = Order
-        fields = ['article', 'status', 'pickup_point', 'order_date', 'delivery_date']
-        widgets = {
-            'article': forms.TextInput(attrs={'class': 'form-control'}),
-            'status': forms.Select(attrs={'class': 'form-control'}),
-            'pickup_point': forms.Select(attrs={'class': 'form-control'}),
-            'order_date': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date'
-            }),
-            'delivery_date': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date'
-            }),
-        }
-```
-
-### Шаг 10.2 — Добавить views для товаров в views.py
-
-Добавить в `core/views.py`:
-
-```python
-def product_create_view(request):
-    """Создание нового товара — только для администратора"""
-    role = get_current_user_role(request)
-    if role != 'admin':
-        messages.error(request, 'Добавлять товары может только администратор.')
-        return redirect('product_list')
-
-    if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES)
-        if form.is_valid():
-            product = form.save(commit=False)
-            # Обработка изображения через Pillow (ресайз 300x200)
-            if 'image' in request.FILES:
-                product = resize_product_image(product, request.FILES['image'])
-            product.save()
-            messages.success(request, f'Товар «{product.name}» успешно добавлен.')
-            return redirect('product_list')
-    else:
-        form = ProductForm()
-
-    return render(request, 'core/product_form.html', {
-        'form': form,
-        'title': 'Добавить товар',
-        'is_create': True,
-        'role': role,
-        'user_full_name': request.session.get('user_full_name', ''),
-    })
-
-
-def product_update_view(request, pk):
-    """Редактирование товара — только для администратора"""
-    role = get_current_user_role(request)
-    if role != 'admin':
-        messages.error(request, 'Редактировать товары может только администратор.')
-        return redirect('product_list')
-
-    product = get_object_or_404(Product, pk=pk)
-
-    if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES, instance=product)
-        if form.is_valid():
-            updated_product = form.save(commit=False)
-            # Если загружено новое изображение — удалить старое и сохранить новое
-            if 'image' in request.FILES:
-                # Удаляем старое фото с диска
-                if product.image and os.path.isfile(product.image.path):
-                    os.remove(product.image.path)
-                updated_product = resize_product_image(updated_product, request.FILES['image'])
-            updated_product.save()
-            messages.success(request, f'Товар «{product.name}» успешно обновлён.')
-            return redirect('product_list')
-    else:
-        form = ProductForm(instance=product)
-
-    return render(request, 'core/product_form.html', {
-        'form': form,
-        'product': product,
-        'title': f'Редактировать товар: {product.name}',
-        'is_create': False,
-        'role': role,
-        'user_full_name': request.session.get('user_full_name', ''),
-    })
-
-
-def resize_product_image(product, image_file):
-    """
-    Обрабатывает изображение через Pillow:
-    изменяет размер до 300x200 пикселей и сохраняет.
-    """
-    from PIL import Image as PilImage
-    from io import BytesIO
-    from django.core.files.uploadedfile import InMemoryUploadedFile
-    import sys
-
-    # Открываем изображение через Pillow
-    img = PilImage.open(image_file)
-
-    # Изменяем размер до 300x200 (с сохранением пропорций через thumbnail)
-    img = img.resize((300, 200), PilImage.LANCZOS)
-
-    # Сохраняем обратно в память
-    output = BytesIO()
-    img_format = img.format if img.format else 'JPEG'
-    img.save(output, format=img_format, quality=85)
-    output.seek(0)
-
-    # Создаём новый файл для Django
-    product.image = InMemoryUploadedFile(
-        output,
-        'ImageField',
-        image_file.name,
-        f'image/{img_format.lower()}',
-        sys.getsizeof(output),
-        None
-    )
-    return product
-```
-
-### Шаг 10.3 — Создать шаблон product_form.html
-
-Создать `core/templates/core/product_form.html`:
+### core/templates/core/product_form.html
 
 ```html
 {% load static %}
@@ -1738,278 +1452,139 @@ def resize_product_image(product, image_file):
 <head>
     <meta charset="UTF-8">
     <title>{{ title }} — ООО Обувь</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'images/Icon.ico' %}">
+    <link rel="icon" href="{% static 'images/Icon.ico' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <header class="header">
-        <div class="header-left">
-            <img src="{% static 'images/logo.png' %}" alt="Логотип" class="logo">
-            <span class="company-name">ООО «Обувь»</span>
+<header class="header">
+    <div class="header-left">
+        <img src="{% static 'images/logo.png' %}" alt="Логотип" class="logo">
+        <span>ООО «Обувь»</span>
+    </div>
+    <div class="header-right">
+        <span class="username">{{ user_full_name }}</span>
+        <a href="{% url 'logout' %}" class="btn-secondary">Выйти</a>
+    </div>
+</header>
+<main>
+    <a href="{% url 'product_list' %}" class="btn-secondary">← Назад</a>
+    <h1>{{ title }}</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% if not is_create %}
+        <div class="field">
+            <label>ID товара</label>
+            <input type="text" value="{{ product.pk }}" readonly class="readonly">
         </div>
-        <div class="header-right">
-            <span class="user-name">{{ user_full_name }}</span>
-            <a href="{% url 'logout' %}" class="btn btn-secondary">Выйти</a>
+        {% endif %}
+
+        <div class="field">
+            <label>Фото товара</label>
+            {% if product.image %}
+                <img src="/media/{{ product.image }}" id="preview" class="img-preview">
+            {% else %}
+                <img src="{% static 'images/picture.png' %}" id="preview" class="img-preview">
+            {% endif %}
+            <input type="file" name="image" accept="image/*">
         </div>
-    </header>
 
-    <main class="main-content">
-        <div class="form-container">
-            <!-- Кнопка Назад -->
-            <a href="{% url 'product_list' %}" class="btn btn-secondary" style="margin-bottom:15px;">
-                ← Назад к списку
-            </a>
-
-            <h1>{{ title }}</h1>
-
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-
-                <!-- ID товара: при добавлении не показываем, при редактировании — только чтение -->
-                {% if not is_create %}
-                    <div class="form-group">
-                        <label>ID товара:</label>
-                        <input type="text" value="{{ product.pk }}"
-                               class="form-control field-readonly" readonly>
-                    </div>
-                {% endif %}
-
-                <!-- Предпросмотр текущего фото -->
-                <div class="form-group">
-                    <label>Фото товара:</label>
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="Текущее фото"
-                             class="form-image-preview" id="image-preview">
-                    {% else %}
-                        <img src="{% static 'images/picture.png' %}" alt="Нет фото"
-                             class="form-image-preview" id="image-preview">
-                    {% endif %}
-                    {{ form.image }}
-                </div>
-
-                <!-- Остальные поля формы -->
-                <div class="form-group">
-                    <label>Наименование товара: *</label>
-                    {{ form.name }}
-                    {% if form.name.errors %}
-                        <div class="error-message">{{ form.name.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label>Категория товара: *</label>
-                    {{ form.category }}
-                </div>
-
-                <div class="form-group">
-                    <label>Описание товара:</label>
-                    {{ form.description }}
-                </div>
-
-                <div class="form-group">
-                    <label>Производитель: *</label>
-                    {{ form.manufacturer }}
-                </div>
-
-                <div class="form-group">
-                    <label>Поставщик: *</label>
-                    {{ form.supplier }}
-                </div>
-
-                <div class="form-group">
-                    <label>Цена (₽): * (не может быть отрицательной)</label>
-                    {{ form.price }}
-                    {% if form.price.errors %}
-                        <div class="error-message">{{ form.price.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label>Единица измерения: *</label>
-                    {{ form.unit }}
-                </div>
-
-                <div class="form-group">
-                    <label>Количество на складе: * (не может быть отрицательным)</label>
-                    {{ form.quantity }}
-                    {% if form.quantity.errors %}
-                        <div class="error-message">{{ form.quantity.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label>Скидка (%): (0–100)</label>
-                    {{ form.discount }}
-                    {% if form.discount.errors %}
-                        <div class="error-message">{{ form.discount.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-buttons">
-                    <button type="submit" class="btn btn-accent">
-                        {% if is_create %}Добавить товар{% else %}Сохранить изменения{% endif %}
-                    </button>
-                    <a href="{% url 'product_list' %}" class="btn btn-secondary">Отмена</a>
-                </div>
-            </form>
+        <div class="field">
+            <label>Наименование *</label>
+            <input type="text" name="name" value="{{ product.name|default:'' }}" required>
+            {% if errors.name %}<div class="msg-error">{{ errors.name }}</div>{% endif %}
         </div>
-    </main>
 
-    <script>
-        // Предпросмотр изображения при выборе файла
-        document.querySelector('input[type=file]').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('image-preview').src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    </script>
+        <div class="field">
+            <label>Категория *</label>
+            <select name="category">
+                {% for c in categories %}
+                    <option value="{{ c.pk }}"
+                        {% if product.category_id == c.pk %}selected{% endif %}>
+                        {{ c.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Описание</label>
+            <textarea name="description">{{ product.description|default:'' }}</textarea>
+        </div>
+
+        <div class="field">
+            <label>Производитель *</label>
+            <select name="manufacturer">
+                {% for m in manufacturers %}
+                    <option value="{{ m.pk }}"
+                        {% if product.manufacturer_id == m.pk %}selected{% endif %}>
+                        {{ m.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Поставщик *</label>
+            <select name="supplier">
+                {% for s in suppliers %}
+                    <option value="{{ s.pk }}"
+                        {% if product.supplier_id == s.pk %}selected{% endif %}>
+                        {{ s.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Цена (₽) * — не может быть отрицательной</label>
+            <input type="number" name="price" step="0.01" min="0"
+                   value="{{ product.price|default:'' }}" required>
+            {% if errors.price %}<div class="msg-error">{{ errors.price }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+            <label>Единица измерения *</label>
+            <input type="text" name="unit" value="{{ product.unit|default:'пара' }}">
+        </div>
+
+        <div class="field">
+            <label>Количество на складе * — не может быть отрицательным</label>
+            <input type="number" name="quantity" min="0"
+                   value="{{ product.quantity|default:0 }}" required>
+            {% if errors.quantity %}<div class="msg-error">{{ errors.quantity }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+            <label>Скидка (%) — от 0 до 100</label>
+            <input type="number" name="discount" step="0.01" min="0" max="100"
+                   value="{{ product.discount|default:0 }}">
+        </div>
+
+        <div class="row-btns">
+            <button type="submit" class="btn-accent">
+                {% if is_create %}Добавить{% else %}Сохранить{% endif %}
+            </button>
+            <a href="{% url 'product_list' %}" class="btn-secondary">Отмена</a>
+        </div>
+    </form>
+</main>
+<script>
+    document.querySelector('input[type=file]').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => document.getElementById('preview').src = e.target.result;
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
 </body>
 </html>
 ```
 
----
-
-## 11. Модуль 3 — Удаление товара
-
-Добавить в `core/views.py`:
-
-```python
-def product_delete_view(request, pk):
-    """Удаление товара — только для администратора"""
-    role = get_current_user_role(request)
-    if role != 'admin':
-        messages.error(request, 'Удалять товары может только администратор.')
-        return redirect('product_list')
-
-    product = get_object_or_404(Product, pk=pk)
-
-    if request.method == 'POST':
-        # Проверяем: нельзя удалить товар, который есть в заказах
-        if OrderItem.objects.filter(product=product).exists():
-            messages.error(
-                request,
-                f'Нельзя удалить товар «{product.name}»: он присутствует в заказах. '
-                f'Сначала удалите или измените связанные заказы.'
-            )
-            return redirect('product_list')
-
-        # Удаляем файл изображения с диска
-        if product.image and os.path.isfile(product.image.path):
-            os.remove(product.image.path)
-
-        product_name = product.name
-        product.delete()
-        messages.success(request, f'Товар «{product_name}» успешно удалён.')
-        return redirect('product_list')
-
-    # GET — показываем страницу подтверждения (или используем confirm в JS)
-    return redirect('product_list')
-```
-
----
-
-## 12. Модуль 4 — Заказы
-
-### Шаг 12.1 — Добавить views для заказов в views.py
-
-Добавить в `core/views.py`:
-
-```python
-def order_list_view(request):
-    """Список заказов — для менеджера и администратора"""
-    role = get_current_user_role(request)
-    if role not in ('manager', 'admin'):
-        messages.error(request, 'Просматривать заказы могут только менеджер и администратор.')
-        return redirect('login')
-
-    orders = Order.objects.select_related('pickup_point').all()
-
-    return render(request, 'core/order_list.html', {
-        'orders': orders,
-        'role': role,
-        'user_full_name': request.session.get('user_full_name', ''),
-    })
-
-
-def order_create_view(request):
-    """Создание заказа — только для администратора"""
-    role = get_current_user_role(request)
-    if role != 'admin':
-        messages.error(request, 'Добавлять заказы может только администратор.')
-        return redirect('order_list')
-
-    if request.method == 'POST':
-        form = OrderForm(request.POST)
-        if form.is_valid():
-            order = form.save()
-            messages.success(request, f'Заказ «{order.article}» успешно создан.')
-            return redirect('order_list')
-    else:
-        form = OrderForm()
-
-    return render(request, 'core/order_form.html', {
-        'form': form,
-        'title': 'Добавить заказ',
-        'is_create': True,
-        'role': role,
-        'user_full_name': request.session.get('user_full_name', ''),
-    })
-
-
-def order_update_view(request, pk):
-    """Редактирование заказа — только для администратора"""
-    role = get_current_user_role(request)
-    if role != 'admin':
-        messages.error(request, 'Редактировать заказы может только администратор.')
-        return redirect('order_list')
-
-    order = get_object_or_404(Order, pk=pk)
-
-    if request.method == 'POST':
-        form = OrderForm(request.POST, instance=order)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'Заказ «{order.article}» успешно обновлён.')
-            return redirect('order_list')
-    else:
-        form = OrderForm(instance=order)
-
-    return render(request, 'core/order_form.html', {
-        'form': form,
-        'order': order,
-        'title': f'Редактировать заказ: {order.article}',
-        'is_create': False,
-        'role': role,
-        'user_full_name': request.session.get('user_full_name', ''),
-    })
-
-
-def order_delete_view(request, pk):
-    """Удаление заказа — только для администратора"""
-    role = get_current_user_role(request)
-    if role != 'admin':
-        messages.error(request, 'Удалять заказы может только администратор.')
-        return redirect('order_list')
-
-    order = get_object_or_404(Order, pk=pk)
-
-    if request.method == 'POST':
-        article = order.article
-        order.delete()
-        messages.success(request, f'Заказ «{article}» успешно удалён.')
-        return redirect('order_list')
-
-    return redirect('order_list')
-```
-
-### Шаг 12.2 — Создать шаблоны заказов
-
-Создать `core/templates/core/order_list.html`:
+### core/templates/core/order_list.html
 
 ```html
 {% load static %}
@@ -2018,79 +1593,66 @@ def order_delete_view(request, pk):
 <head>
     <meta charset="UTF-8">
     <title>Заказы — ООО Обувь</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'images/Icon.ico' %}">
+    <link rel="icon" href="{% static 'images/Icon.ico' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <header class="header">
-        <div class="header-left">
-            <img src="{% static 'images/logo.png' %}" alt="Логотип" class="logo">
-            <span class="company-name">ООО «Обувь»</span>
+<header class="header">
+    <div class="header-left">
+        <img src="{% static 'images/logo.png' %}" alt="Логотип" class="logo">
+        <span>ООО «Обувь»</span>
+    </div>
+    <div class="header-right">
+        <span class="username">{{ user_full_name }}</span>
+        <a href="{% url 'logout' %}" class="btn-secondary">Выйти</a>
+    </div>
+</header>
+<main>
+    <div class="page-top">
+        <h1>Заказы</h1>
+        <div class="row-btns">
+            <a href="{% url 'product_list' %}" class="btn-secondary">← Товары</a>
+            {% if role == 'admin' %}
+                <a href="{% url 'order_create' %}" class="btn-accent">+ Добавить заказ</a>
+            {% endif %}
         </div>
-        <div class="header-right">
-            <span class="user-name">{{ user_full_name }}</span>
-            <a href="{% url 'logout' %}" class="btn btn-secondary">Выйти</a>
-        </div>
-    </header>
+    </div>
 
-    <main class="main-content">
-        <div class="page-header">
-            <h1>Заказы</h1>
-            <div class="header-actions">
-                <a href="{% url 'product_list' %}" class="btn btn-secondary">← Товары</a>
-                {% if role == 'admin' %}
-                    <a href="{% url 'order_create' %}" class="btn btn-accent">+ Добавить заказ</a>
-                {% endif %}
-            </div>
+    {% for order in orders %}
+    <div class="order-card"
+        {% if role == 'admin' %}
+            onclick="location.href='{% url 'order_edit' order.pk %}'"
+            style="cursor:pointer"
+        {% endif %}>
+        <div class="order-info">
+            <strong>Артикул заказа: {{ order.article }}</strong>
+            <div>Статус заказа: {{ order.get_status_display }}</div>
+            <div>Адрес пункта выдачи: {{ order.pickup_point.address }}</div>
+            <div>Дата заказа: {{ order.order_date }}</div>
         </div>
-
-        {% if messages %}
-            {% for message in messages %}
-                <div class="message message-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
+        <div class="order-delivery">
+            Дата доставки<br>
+            <strong>{{ order.delivery_date|default:"—" }}</strong>
+        </div>
+        {% if role == 'admin' %}
+        <div class="product-del" onclick="event.stopPropagation()">
+            <form method="post" action="{% url 'order_delete' order.pk %}"
+                  onsubmit="return confirm('Удалить заказ «{{ order.article }}»?')">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger">Удалить</button>
+            </form>
+        </div>
         {% endif %}
-
-        <div class="orders-list">
-            {% for order in orders %}
-                <!-- Клик по заказу открывает редактирование (только у администратора) -->
-                <div class="order-card"
-                    {% if role == 'admin' %}
-                        onclick="window.location='{% url 'order_edit' order.pk %}'"
-                        style="cursor: pointer;"
-                    {% endif %}>
-
-                    <div class="order-info">
-                        <div><strong>Артикул заказа: {{ order.article }}</strong></div>
-                        <div>Статус заказа: {{ order.get_status_display }}</div>
-                        <div>Адрес пункта выдачи: {{ order.pickup_point.address }}</div>
-                        <div>Дата заказа: {{ order.order_date }}</div>
-                    </div>
-
-                    <div class="order-delivery">
-                        Дата доставки:<br>
-                        {{ order.delivery_date|default:"—" }}
-                    </div>
-
-                    {% if role == 'admin' %}
-                        <div class="product-actions" onclick="event.stopPropagation()">
-                            <form method="post" action="{% url 'order_delete' order.pk %}"
-                                  onsubmit="return confirm('Удалить заказ «{{ order.article }}»?')">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger">Удалить</button>
-                            </form>
-                        </div>
-                    {% endif %}
-                </div>
-            {% empty %}
-                <p class="no-results">Заказы не найдены.</p>
-            {% endfor %}
-        </div>
-    </main>
+    </div>
+    {% empty %}
+        <p class="empty">Заказы не найдены.</p>
+    {% endfor %}
+</main>
 </body>
 </html>
 ```
 
-Создать `core/templates/core/order_form.html`:
+### core/templates/core/order_form.html
 
 ```html
 {% load static %}
@@ -2099,99 +1661,251 @@ def order_delete_view(request, pk):
 <head>
     <meta charset="UTF-8">
     <title>{{ title }} — ООО Обувь</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'images/Icon.ico' %}">
+    <link rel="icon" href="{% static 'images/Icon.ico' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <header class="header">
-        <div class="header-left">
-            <img src="{% static 'images/logo.png' %}" alt="Логотип" class="logo">
-            <span class="company-name">ООО «Обувь»</span>
+<header class="header">
+    <div class="header-left">
+        <img src="{% static 'images/logo.png' %}" alt="Логотип" class="logo">
+        <span>ООО «Обувь»</span>
+    </div>
+    <div class="header-right">
+        <span class="username">{{ user_full_name }}</span>
+        <a href="{% url 'logout' %}" class="btn-secondary">Выйти</a>
+    </div>
+</header>
+<main>
+    <a href="{% url 'order_list' %}" class="btn-secondary">← Назад</a>
+    <h1>{{ title }}</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {% if not is_create %}
+        <div class="field">
+            <label>ID заказа</label>
+            <input type="text" value="{{ order.pk }}" readonly class="readonly">
         </div>
-        <div class="header-right">
-            <span class="user-name">{{ user_full_name }}</span>
-            <a href="{% url 'logout' %}" class="btn btn-secondary">Выйти</a>
+        {% endif %}
+
+        <div class="field">
+            <label>Артикул *</label>
+            <input type="text" name="article"
+                   value="{{ order.article|default:'' }}" required>
+            {% if errors.article %}<div class="msg-error">{{ errors.article }}</div>{% endif %}
         </div>
-    </header>
 
-    <main class="main-content">
-        <div class="form-container">
-            <a href="{% url 'order_list' %}" class="btn btn-secondary" style="margin-bottom:15px;">
-                ← Назад к заказам
-            </a>
-
-            <h1>{{ title }}</h1>
-
-            <form method="post">
-                {% csrf_token %}
-
-                {% if not is_create %}
-                    <div class="form-group">
-                        <label>ID заказа:</label>
-                        <input type="text" value="{{ order.pk }}"
-                               class="form-control field-readonly" readonly>
-                    </div>
-                {% endif %}
-
-                <div class="form-group">
-                    <label>Артикул: *</label>
-                    {{ form.article }}
-                    {% if form.article.errors %}
-                        <div class="error-message">{{ form.article.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label>Статус заказа: *</label>
-                    {{ form.status }}
-                </div>
-
-                <div class="form-group">
-                    <label>Адрес пункта выдачи: *</label>
-                    {{ form.pickup_point }}
-                </div>
-
-                <div class="form-group">
-                    <label>Дата заказа: *</label>
-                    {{ form.order_date }}
-                </div>
-
-                <div class="form-group">
-                    <label>Дата выдачи:</label>
-                    {{ form.delivery_date }}
-                </div>
-
-                <div class="form-buttons">
-                    <button type="submit" class="btn btn-accent">
-                        {% if is_create %}Добавить заказ{% else %}Сохранить изменения{% endif %}
-                    </button>
-                    <a href="{% url 'order_list' %}" class="btn btn-secondary">Отмена</a>
-                </div>
-            </form>
+        <div class="field">
+            <label>Статус заказа *</label>
+            <select name="status">
+                {% for val, label in status_choices %}
+                    <option value="{{ val }}"
+                        {% if order.status == val %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
         </div>
-    </main>
+
+        <div class="field">
+            <label>Адрес пункта выдачи *</label>
+            <select name="pickup_point">
+                {% for pp in pickup_points %}
+                    <option value="{{ pp.pk }}"
+                        {% if order.pickup_point_id == pp.pk %}selected{% endif %}>
+                        {{ pp.address }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Дата заказа *</label>
+            <input type="date" name="order_date"
+                   value="{{ order.order_date|default:'' }}" required>
+            {% if errors.order_date %}
+                <div class="msg-error">{{ errors.order_date }}</div>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            <label>Дата выдачи</label>
+            <input type="date" name="delivery_date"
+                   value="{{ order.delivery_date|default:'' }}">
+        </div>
+
+        <div class="row-btns">
+            <button type="submit" class="btn-accent">
+                {% if is_create %}Добавить{% else %}Сохранить{% endif %}
+            </button>
+            <a href="{% url 'order_list' %}" class="btn-secondary">Отмена</a>
+        </div>
+    </form>
+</main>
 </body>
 </html>
 ```
 
+### static/css/style.css
+
+```css
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Times New Roman', Times, serif;
+    background: #FFFFFF;
+    color: #333;
+}
+
+/* ===== ШАПКА ===== */
+.header {
+    background: #7FFF00;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ccc;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.logo { height: 50px; width: auto; object-fit: contain; }
+.logo-large { height: 80px; width: auto; object-fit: contain; margin-bottom: 16px; }
+.username { font-weight: bold; }
+
+/* ===== КНОПКИ ===== */
+.btn-accent {
+    background: #00FA9A; color: #000;
+    padding: 8px 16px; border: none; border-radius: 4px;
+    cursor: pointer; font-family: inherit; font-size: 1em;
+    text-decoration: none; display: inline-block;
+}
+.btn-secondary {
+    background: #7FFF00; color: #000;
+    padding: 8px 16px; border: none; border-radius: 4px;
+    cursor: pointer; font-family: inherit; font-size: 1em;
+    text-decoration: none; display: inline-block;
+}
+.btn-danger {
+    background: #dc3545; color: #fff;
+    padding: 6px 12px; border: none; border-radius: 4px;
+    cursor: pointer; font-family: inherit;
+}
+
+/* ===== СТРАНИЦА ВХОДА ===== */
+.login-page {
+    min-height: 100vh; background: #7FFF00;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 20px;
+}
+.login-box {
+    background: #fff; padding: 30px; border-radius: 8px;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.login-box h1 { margin-bottom: 20px; font-size: 1.4em; text-align: center; }
+
+/* ===== ПОЛЯ ФОРМ ===== */
+main { padding: 20px; max-width: 1100px; margin: 0 auto; }
+h1 { margin: 12px 0; }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; margin-bottom: 4px; font-weight: bold; }
+.field input,
+.field select,
+.field textarea {
+    width: 100%; padding: 7px; border: 1px solid #ccc;
+    border-radius: 4px; font-family: inherit; font-size: 1em;
+}
+.field textarea { resize: vertical; min-height: 70px; }
+.readonly { background: #f5f5f5; cursor: not-allowed; }
+.row-btns { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+/* ===== ВЕРХНЯЯ ПАНЕЛЬ ===== */
+.page-top {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 16px;
+}
+
+/* ===== ФИЛЬТРЫ ===== */
+.filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.filters input,
+.filters select {
+    padding: 7px; border: 1px solid #ccc; border-radius: 4px;
+    font-family: inherit; font-size: 1em;
+}
+.filters input { flex: 1; min-width: 180px; }
+
+/* ===== КАРТОЧКА ТОВАРА ===== */
+.product-card {
+    display: flex; align-items: stretch;
+    border: 1px solid #ccc; border-radius: 4px;
+    background: #fff; margin-bottom: 8px; overflow: hidden;
+}
+.card-green { background: #2E8B57; color: #fff; }
+.card-blue  { background: lightblue; }
+
+.product-img {
+    width: 120px; min-width: 120px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 8px; background: rgba(255,255,255,0.25);
+}
+.product-img img { width: 100px; height: 75px; object-fit: contain; }
+
+.product-info {
+    flex: 1; padding: 10px;
+    display: flex; flex-direction: column; gap: 3px;
+}
+
+/* Перечёркнутая цена красная, итоговая чёрная */
+.price-old { text-decoration: line-through; color: red; margin-right: 8px; }
+.price-new { color: black; font-weight: bold; }
+
+.product-discount {
+    width: 75px; min-width: 75px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; border-left: 1px solid #ccc; padding: 8px;
+}
+.product-del {
+    display: flex; align-items: center;
+    padding: 8px; border-left: 1px solid #ccc;
+}
+
+/* ===== КАРТОЧКА ЗАКАЗА ===== */
+.order-card {
+    display: flex; align-items: stretch;
+    border: 1px solid #ccc; border-radius: 4px;
+    background: #fff; margin-bottom: 8px; overflow: hidden;
+}
+.order-info { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 3px; }
+.order-delivery {
+    width: 140px; min-width: 140px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 10px; border-left: 1px solid #ccc; text-align: center;
+}
+
+/* ===== ПРЕВЬЮ ФОТО В ФОРМЕ ===== */
+.img-preview {
+    width: 300px; height: 200px;
+    object-fit: contain; border: 1px solid #ccc;
+    margin-bottom: 8px; display: block;
+}
+
+/* ===== СООБЩЕНИЯ ===== */
+.msg-error {
+    background: #f8d7da; color: #721c24;
+    padding: 8px 12px; border-radius: 4px;
+    margin-bottom: 12px; border: 1px solid #f5c6cb;
+}
+.empty { text-align: center; color: #666; padding: 30px; font-size: 1.1em; }
+```
+
 ---
 
-## 13. Вариативная часть — CSRF, неиспользуемые фото
+## 15. Вариативная часть — cleanup неиспользуемых фото
 
-### CSRF-защита (5 баллов)
-
-CSRF уже встроена в Django. Убедиться что:
-- `django.middleware.csrf.CsrfViewMiddleware` есть в `MIDDLEWARE` в settings.py (там по умолчанию)
-- В **каждой** POST-форме стоит `{% csrf_token %}`:
-  - `login.html` — форма входа ✓
-  - `product_list.html` — форма удаления ✓
-  - `product_form.html` — форма товара ✓
-  - `order_list.html` — форма удаления заказа ✓
-  - `order_form.html` — форма заказа ✓
-
-### Удаление неиспользуемых фото (5 баллов)
-
-Создать management-команду `core/management/commands/cleanup_images.py`:
+Создать `core/management/commands/cleanup_images.py`:
 
 ```python
 import os
@@ -2201,196 +1915,157 @@ from core.models import Product
 
 
 class Command(BaseCommand):
-    """Удаление фотографий товаров, которые больше не используются в БД"""
-    help = 'Удаление неиспользуемых изображений товаров из папки media/products/'
+    """Удаление файлов из media/products/, не привязанных ни к одному товару"""
+    help = 'Удаление неиспользуемых фотографий товаров'
 
     def handle(self, *args, **options):
-        # Получаем все пути к изображениям из базы данных
-        db_images = set()
-        for product in Product.objects.exclude(image='').exclude(image__isnull=True):
+        # Собираем имена файлов которые реально используются
+        used_images = set()
+        for product in Product.objects.exclude(image=''):
             if product.image:
-                db_images.add(os.path.basename(product.image.name))
+                used_images.add(os.path.basename(product.image))
 
-        # Получаем все файлы в папке media/products/
         products_dir = os.path.join(settings.MEDIA_ROOT, 'products')
         if not os.path.exists(products_dir):
-            self.stdout.write('Папка media/products/ не найдена.')
+            self.stdout.write('Папка media/products/ не существует.')
             return
 
-        deleted_count = 0
+        deleted = 0
         for filename in os.listdir(products_dir):
-            if filename not in db_images:
-                # Файл не используется ни одним товаром — удаляем
-                file_path = os.path.join(products_dir, filename)
-                os.remove(file_path)
-                deleted_count += 1
+            if filename not in used_images:
+                os.remove(os.path.join(products_dir, filename))
+                deleted += 1
                 self.stdout.write(f'Удалён: {filename}')
 
-        self.stdout.write(
-            self.style.SUCCESS(f'Очистка завершена. Удалено файлов: {deleted_count}')
-        )
+        self.stdout.write(self.style.SUCCESS(f'Готово. Удалено файлов: {deleted}'))
 ```
 
-Запустить:
 ```powershell
 python manage.py cleanup_images
 ```
 
 ---
 
-## 14. Git и финальная сдача
+## 16. SQL дамп и Git
 
-### Шаг 14.1 — Инициализировать репозиторий
+### Дамп базы данных
+
+```powershell
+# Только схема
+& "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -s shoe_store > schema.sql
+
+# Полный дамп (схема + данные)
+& "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres shoe_store > full_dump.sql
+```
+
+### Git
 
 ```powershell
 git init
-git config user.email "student@exam.ru"
+
+echo .venv/ > .gitignore
+echo __pycache__/ >> .gitignore
+echo "*.pyc" >> .gitignore
+echo media/ >> .gitignore
+
 git config user.name "Student"
-```
-
-### Шаг 14.2 — Создать .gitignore
-
-Создать `.gitignore`:
-```
-.venv/
-__pycache__/
-*.pyc
-*.pyo
-.env
-media/
-*.sqlite3
-```
-
-### Шаг 14.3 — Первый коммит и дальнейшие коммиты
-
-```powershell
-# Первый коммит — структура проекта
-git add manage.py pyproject.toml config/ core/ static/
-git commit -m "initial commit"
-
-# После каждого модуля делать коммит
-git add .
-git commit -m "module 1: add models and migrations"
+git config user.email "student@exam.ru"
 
 git add .
-git commit -m "module 1: add csv import script"
+git commit -m "module 1: db schema and models"
 
 git add .
-git commit -m "module 2: add login view and templates"
+git commit -m "module 1: csv import script"
 
 git add .
-git commit -m "module 2: add product list with highlighting"
+git commit -m "module 2: login and product list"
 
 git add .
-git commit -m "module 3: add search filter sort"
+git commit -m "module 3: search filter sort product crud pillow"
 
 git add .
-git commit -m "module 3: add product form with pillow"
+git commit -m "module 4: orders crud"
 
-git add .
-git commit -m "module 3: add product delete"
+git add schema.sql full_dump.sql er_diagram.pdf
+git commit -m "add db dump and er diagram"
 
-git add .
-git commit -m "module 4: add orders section"
-```
-
-### Шаг 14.4 — Привязать удалённый репозиторий и запушить
-
-```powershell
-# URL репозитория скажут на экзамене
-git remote add origin https://github.com/USERNAME/REPONAME.git
+# URL скажут на экзамене
+git remote add origin https://github.com/USERNAME/REPO.git
 git branch -M main
 git push -u origin main
 ```
 
-### Шаг 14.5 — Сохранить SQL-скрипт БД
-
-```powershell
-# Только схема (для сдачи)
-& "C:\Program Files\PostgreSQL\16\bin\pg_dump.exe" -U postgres -s shoe_store > schema.sql
-
-# Полный дамп с данными
-& "C:\Program Files\PostgreSQL\16\bin\pg_dump.exe" -U postgres shoe_store > full_dump.sql
-
-# Добавить в репозиторий
-git add schema.sql full_dump.sql
-git commit -m "add database dump"
-git push
-```
-
 ---
 
-## 15. Чеклист перед сдачей
+## 17. Чеклист перед сдачей
 
 ### Модуль 1 (10 баллов)
 - [ ] БД создана в PostgreSQL (3НФ, ссылочная целостность)
-- [ ] ER-диаграмма экспортирована в PDF (таблицы, связи, атрибуты, ключи)
-- [ ] CSV данные загружены через `python manage.py import_data`
-- [ ] SQL-скрипт сохранён (`schema.sql`)
+- [ ] ER-диаграмма в PDF (таблицы, связи, атрибуты, ключи)
+- [ ] CSV данные загружены: `python manage.py import_data`
+- [ ] SQL дамп: `schema.sql` + `full_dump.sql`
 
 ### Модуль 2 (15 баллов)
-- [ ] Блок-схема алгоритма в PDF (по ГОСТ 19.701-90)
-- [ ] Страница входа — первое что видит пользователь
+- [ ] Блок-схема алгоритма в PDF (ГОСТ 19.701-90)
+- [ ] Страница входа — первая для пользователя
 - [ ] Кнопка "Войти как гость" работает
-- [ ] Авторизация по логину/паролю из БД работает
-- [ ] ФИО пользователя отображается в правом верхнем углу
+- [ ] Авторизация по логину/паролю из БД
+- [ ] ФИО пользователя в правом верхнем углу
 - [ ] Кнопка "Выйти" работает
-- [ ] Список товаров показывается для всех ролей
-- [ ] Фото товара или заглушка `picture.png`
-- [ ] Подсветка: скидка >15% → `#2E8B57`
-- [ ] Подсветка: нет на складе → голубой
-- [ ] Цена перечёркнута красным + итоговая чёрным при скидке
-- [ ] Шрифт Times New Roman
-- [ ] Цвета: белый / `#7FFF00` / `#00FA9A`
-- [ ] Логотип на главной форме (не искажён)
-- [ ] Иконка приложения установлена
-- [ ] Скриншоты работы в docx файле
+- [ ] Список товаров для всех ролей
+- [ ] Фото товара или заглушка picture.png
+- [ ] Подсветка скидка > 15% → `#2E8B57`
+- [ ] Подсветка нет на складе → голубой
+- [ ] Цена перечёркнута красным + итоговая чёрным
+- [ ] Шрифт Times New Roman везде
+- [ ] Цвета `#FFFFFF` / `#7FFF00` / `#00FA9A`
+- [ ] Логотип на главной форме (не искажён, пропорции сохранены)
+- [ ] Иконка приложения `Icon.ico`
+- [ ] Скриншоты корректной работы в docx
 
 ### Модуль 3 (24 балла)
-- [ ] Кнопка "Назад" на всех страницах
-- [ ] Заголовки на каждой странице соответствуют назначению
-- [ ] Обработка ошибок с информативными сообщениями
-- [ ] Комментарии в коде в нужных местах
-- [ ] Поиск в реальном времени (по всем текстовым полям)
+- [ ] Кнопка "← Назад" на всех страницах
+- [ ] Заголовки страниц соответствуют назначению
+- [ ] Сообщения об ошибках информативны
+- [ ] Комментарии в коде там где нужно
+- [ ] Поиск в реальном времени по всем текстовым полям
 - [ ] Фильтр по поставщику (первый элемент "Все поставщики")
-- [ ] Сортировка по количеству (↑ и ↓)
+- [ ] Сортировка по количеству ↑ и ↓
 - [ ] Поиск + фильтр работают совместно
 - [ ] Сортировка сохраняется при поиске/фильтре
 - [ ] Форма добавления товара (только администратор)
-- [ ] Форма редактирования (клик по товару, администратор)
-- [ ] Все поля загружаются при редактировании
-- [ ] ID: не показывается при добавлении, read-only при редактировании
-- [ ] Загрузка фото — ресайз 300×200 через Pillow
+- [ ] Клик по товару → редактирование (только администратор)
+- [ ] Все поля заполняются при редактировании
+- [ ] ID скрыт при добавлении, read-only при редактировании
+- [ ] Ресайз фото 300×200 через Pillow
 - [ ] Старое фото удаляется при замене
-- [ ] Нельзя открыть два окна редактирования одновременно
-- [ ] Удаление товара: нельзя удалить если есть в заказах
-- [ ] Список обновляется после добавления/редактирования/удаления
+- [ ] Нельзя удалить товар если он есть в заказах
+- [ ] Список обновляется после каждой операции
 
 ### Модуль 4 (23 балла)
 - [ ] Кнопка "Заказы" у менеджера и администратора
-- [ ] Список заказов по макету (артикул, статус, адрес, дата заказа / дата доставки)
+- [ ] Список заказов по макету
 - [ ] Форма добавления заказа (только администратор)
-- [ ] Форма редактирования заказа
+- [ ] Клик по заказу → редактирование (только администратор)
 - [ ] Удаление заказа
-- [ ] Список обновляется после изменений
+- [ ] Список обновляется после каждой операции
 
 ### Вариативная часть (25 баллов)
-- [ ] Management-команда `import_data.py` работает
+- [ ] `import_data` management command работает
 - [ ] `{% csrf_token %}` во всех POST-формах
-- [ ] Management-команда `cleanup_images.py` удаляет неиспользуемые фото
-- [ ] Pillow: ресайз изображений до 300×200
-- [ ] Проект работает на Django (pyproject.toml с зависимостями)
+- [ ] `cleanup_images` management command работает
+- [ ] Pillow ресайзит до 300×200
+- [ ] Проект на Django, зависимости в `pyproject.toml`
 
 ### Git
-- [ ] Репозиторий инициализирован
-- [ ] Коммиты сделаны по модулям
-- [ ] Код запушен в удалённый репозиторий
-- [ ] Структура файлов (не архив!) загружена
-- [ ] SQL-скрипт в репозитории
+- [ ] Коммиты по модулям
+- [ ] Исходный код запушен структурой (не архив)
+- [ ] `schema.sql` в репозитории
+- [ ] `er_diagram.pdf` в репозитории
 
 ---
 
-## БЫСТРЫЕ КОМАНДЫ (держать под рукой на экзамене)
+## 18. Быстрые команды
 
 ```powershell
 # Активировать venv
@@ -2399,18 +2074,24 @@ git push
 # Запустить сервер
 python manage.py runserver
 
-# Миграции
+# === ВАРИАНТ А ===
+psql -U postgres -d shoe_store -f schema.sql
+python manage.py inspectdb > core/models.py
+python manage.py migrate
+
+# === ВАРИАНТ Б ===
 python manage.py makemigrations
 python manage.py migrate
 
-# Импорт данных
+# Импорт CSV
 python manage.py import_data
 
-# Очистка фото
+# Очистка неиспользуемых фото
 python manage.py cleanup_images
 
 # Дамп БД
-& "C:\Program Files\PostgreSQL\16\bin\pg_dump.exe" -U postgres shoe_store > schema.sql
+& "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -s shoe_store > schema.sql
+& "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres shoe_store > full_dump.sql
 
 # Git
 git add .
@@ -2420,5 +2101,5 @@ git push
 
 ---
 
-*Инструкция составлена для демоэкзамена КОД 09.02.07-2-2026, ГИА ДЭ ПУ.*  
-*Стек: Python 3.13 · Django · PostgreSQL · UV · VS Code · Windows*
+*Инструкция для КОД 09.02.07-2-2026, ГИА ДЭ ПУ.*  
+*Python 3.13 · Django 5 · PostgreSQL 18 · UV · VS Code · Windows*
