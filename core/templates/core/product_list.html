@@ -40,10 +40,15 @@
         <div class="msg-error">{{ error }}</div>
     {% endif %}
 
+    <!-- Панель фильтров — только менеджер и администратор -->
     {% if role == 'manager' or role == 'admin' %}
     <div class="filters">
+        <!-- Поиск по всем полям -->
         <input type="text" id="search" placeholder="Поиск по всем полям..."
                value="{{ search_query }}">
+
+        {% comment %}
+        <!-- Фильтр по поставщику — закомментирован, оставлен для возможного возврата -->
         <select id="supplier">
             <option value="">Все поставщики</option>
             {% for s in suppliers %}
@@ -53,16 +58,29 @@
                 </option>
             {% endfor %}
         </select>
+        {% endcomment %}
+
+        <!-- Фильтр по диапазону скидки -->
+        <select id="discount_range">
+            <option value="">Любая скидка</option>
+            <option value="0-11"  {% if discount_range == '0-11'  %}selected{% endif %}>0–11%</option>
+            <option value="11-15" {% if discount_range == '11-15' %}selected{% endif %}>11–15%</option>
+            <option value="15-19" {% if discount_range == '15-19' %}selected{% endif %}>15–19%</option>
+            <option value="19+"   {% if discount_range == '19+'   %}selected{% endif %}>Более 19%</option>
+        </select>
+
+        <!-- Сортировка -->
         <select id="sort">
             <option value="">Без сортировки</option>
-            <option value="quantity_asc"
-                {% if sort_by == 'quantity_asc' %}selected{% endif %}>Количество ↑</option>
-            <option value="quantity_desc"
-                {% if sort_by == 'quantity_desc' %}selected{% endif %}>Количество ↓</option>
+            <option value="quantity_asc"  {% if sort_by == 'quantity_asc'  %}selected{% endif %}>Количество ↑</option>
+            <option value="quantity_desc" {% if sort_by == 'quantity_desc' %}selected{% endif %}>Количество ↓</option>
+            <option value="price_asc"     {% if sort_by == 'price_asc'     %}selected{% endif %}>Цена ↑</option>
+            <option value="price_desc"    {% if sort_by == 'price_desc'    %}selected{% endif %}>Цена ↓</option>
         </select>
     </div>
     {% endif %}
 
+    <!-- Список товаров -->
     {% for product in products %}
     <div class="product-card
         {% if product.is_big_discount %}card-green
@@ -72,6 +90,7 @@
             style="cursor:pointer"
         {% endif %}>
 
+        <!-- Фото или заглушка -->
         <div class="product-img">
             {% if product.image %}
                 <img src="/media/{{ product.image }}" alt="{{ product.name }}">
@@ -80,6 +99,7 @@
             {% endif %}
         </div>
 
+        <!-- Информация о товаре -->
         <div class="product-info">
             <strong>{{ product.category.name }} | {{ product.name }}</strong>
             <div>Описание: {{ product.description|default:"—" }}</div>
@@ -87,6 +107,7 @@
             <div>Поставщик: {{ product.supplier.name }}</div>
             <div class="price-row">
                 {% if product.has_discount %}
+                    <!-- Перечёркнутая цена красная + итоговая чёрная -->
                     <span class="price-old">{{ product.price }} ₽</span>
                     <span class="price-new">{{ product.get_final_price }} ₽</span>
                 {% else %}
@@ -97,10 +118,12 @@
             <div>Количество на складе: {{ product.quantity }}</div>
         </div>
 
+        <!-- Действующая скидка -->
         <div class="product-discount">
             {% if product.has_discount %}{{ product.discount }}%{% else %}—{% endif %}
         </div>
 
+        <!-- Кнопка удаления — только администратор -->
         {% if role == 'admin' %}
         <div class="product-del" onclick="event.stopPropagation()">
             <form method="post" action="{% url 'product_delete' product.pk %}"
@@ -118,23 +141,29 @@
 
 {% if role == 'manager' or role == 'admin' %}
 <script>
+    // Собирает текущие значения фильтров и перезагружает страницу с параметрами
     function applyFilters() {
         const params = new URLSearchParams();
-        const search   = document.getElementById('search').value;
-        const supplier = document.getElementById('supplier').value;
-        const sort     = document.getElementById('sort').value;
-        if (search)   params.set('search', search);
-        if (supplier) params.set('supplier', supplier);
-        if (sort)     params.set('sort', sort);
+        const search         = document.getElementById('search').value;
+        const discount_range = document.getElementById('discount_range').value;
+        const sort           = document.getElementById('sort').value;
+
+        if (search)         params.set('search', search);
+        if (discount_range) params.set('discount_range', discount_range);
+        if (sort)           params.set('sort', sort);
+
         window.location.href = '/products/?' + params.toString();
     }
 
+    // Поиск с задержкой 300мс (debounce)
     let timer;
     document.getElementById('search').addEventListener('input', () => {
         clearTimeout(timer);
         timer = setTimeout(applyFilters, 300);
     });
-    document.getElementById('supplier').addEventListener('change', applyFilters);
+
+    // Остальные фильтры — сразу при изменении
+    document.getElementById('discount_range').addEventListener('change', applyFilters);
     document.getElementById('sort').addEventListener('change', applyFilters);
 </script>
 {% endif %}

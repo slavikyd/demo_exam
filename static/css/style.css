@@ -1,14 +1,29 @@
+/* ===== ЦВЕТОВЫЕ ПЕРЕМЕННЫЕ ===== */
+:root {
+    --color-bg:        #FFFFFF;   /* основной фон */
+    --color-secondary: #7FFF00;   /* дополнительный фон, шапка, кнопка secondary */
+    --color-accent:    #00FA9A;   /* акцент, кнопка accent */
+    --color-discount:  #2E8B57;   /* фон строки при скидке > 15% */
+    --color-no-stock:  lightblue; /* фон строки при отсутствии на складе */
+    --color-danger:    #dc3545;   /* кнопка удаления */
+    --color-error-bg:  #f8d7da;
+    --color-error-fg:  #721c24;
+    --color-error-brd: #f5c6cb;
+    --color-price-old: red;       /* перечёркнутая цена */
+    --color-price-new: black;     /* итоговая цена со скидкой */
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     font-family: 'Times New Roman', Times, serif;
-    background: #FFFFFF;
+    background: var(--color-bg);
     color: #333;
 }
 
 /* ===== ШАПКА ===== */
 .header {
-    background: #7FFF00;
+    background: var(--color-secondary);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -23,31 +38,31 @@ body {
 
 /* ===== КНОПКИ ===== */
 .btn-accent {
-    background: #00FA9A; color: #000;
+    background: var(--color-accent); color: #000;
     padding: 8px 16px; border: none; border-radius: 4px;
     cursor: pointer; font-family: inherit; font-size: 1em;
     text-decoration: none; display: inline-block;
 }
 .btn-secondary {
-    background: #7FFF00; color: #000;
+    background: var(--color-secondary); color: #000;
     padding: 8px 16px; border: none; border-radius: 4px;
     cursor: pointer; font-family: inherit; font-size: 1em;
     text-decoration: none; display: inline-block;
 }
 .btn-danger {
-    background: #dc3545; color: #fff;
+    background: var(--color-danger); color: #fff;
     padding: 6px 12px; border: none; border-radius: 4px;
     cursor: pointer; font-family: inherit;
 }
 
 /* ===== СТРАНИЦА ВХОДА ===== */
 .login-page {
-    min-height: 100vh; background: #7FFF00;
+    min-height: 100vh; background: var(--color-secondary);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center; padding: 20px;
 }
 .login-box {
-    background: #fff; padding: 30px; border-radius: 8px;
+    background: var(--color-bg); padding: 30px; border-radius: 8px;
     width: 100%; max-width: 400px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
@@ -76,22 +91,23 @@ h1 { margin: 12px 0; }
 }
 
 /* ===== ФИЛЬТРЫ ===== */
-.filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
 .filters input,
 .filters select {
     padding: 7px; border: 1px solid #ccc; border-radius: 4px;
     font-family: inherit; font-size: 1em;
 }
 .filters input { flex: 1; min-width: 180px; }
+.filters label { font-weight: bold; white-space: nowrap; }
 
 /* ===== КАРТОЧКА ТОВАРА ===== */
 .product-card {
     display: flex; align-items: stretch;
     border: 1px solid #ccc; border-radius: 4px;
-    background: #fff; margin-bottom: 8px; overflow: hidden;
+    background: var(--color-bg); margin-bottom: 8px; overflow: hidden;
 }
-.card-green { background: #2E8B57; color: #fff; }
-.card-blue  { background: lightblue; }
+.card-green { background: var(--color-discount); color: #fff; }
+.card-blue  { background: var(--color-no-stock); }
 
 .product-img {
     width: 120px; min-width: 120px;
@@ -105,8 +121,9 @@ h1 { margin: 12px 0; }
     display: flex; flex-direction: column; gap: 3px;
 }
 
-.price-old { text-decoration: line-through; color: red; margin-right: 8px; }
-.price-new { color: black; font-weight: bold; }
+/* Перечёркнутая цена красная, итоговая чёрная */
+.price-old { text-decoration: line-through; color: var(--color-price-old); margin-right: 8px; }
+.price-new { color: var(--color-price-new); font-weight: bold; }
 
 .product-discount {
     width: 75px; min-width: 75px;
@@ -122,7 +139,7 @@ h1 { margin: 12px 0; }
 .order-card {
     display: flex; align-items: stretch;
     border: 1px solid #ccc; border-radius: 4px;
-    background: #fff; margin-bottom: 8px; overflow: hidden;
+    background: var(--color-bg); margin-bottom: 8px; overflow: hidden;
 }
 .order-info { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 3px; }
 .order-delivery {
@@ -141,8 +158,8 @@ h1 { margin: 12px 0; }
 
 /* ===== СООБЩЕНИЯ ===== */
 .msg-error {
-    background: #f8d7da; color: #721c24;
+    background: var(--color-error-bg); color: var(--color-error-fg);
     padding: 8px 12px; border-radius: 4px;
-    margin-bottom: 12px; border: 1px solid #f5c6cb;
+    margin-bottom: 12px; border: 1px solid var(--color-error-brd);
 }
 .empty { text-align: center; color: #666; padding: 30px; font-size: 1.1em; }

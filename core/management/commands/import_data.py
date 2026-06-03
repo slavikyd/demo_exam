@@ -8,30 +8,37 @@ from core.models import (
 
 ROLE_MAP = {
     'Администратор': 'admin',
-    'Менеджер': 'manager',
-    'Клиент': 'client',
-    'Гость': 'guest',
+    'Менеджер':      'manager',
+    'Клиент':        'client',
+    'Гость':         'guest',
 }
 
 STATUS_MAP = {
-    'Новый': 'new',
-    'В обработке': 'processing',
+    'Новый':          'new',
+    'В обработке':    'processing',
     'Готов к выдаче': 'ready',
-    'Завершен': 'completed',
-    'Завершён': 'completed',
-    'Отменён': 'cancelled',
-    'Отменен': 'cancelled',
+    'Завершен':       'completed',
+    'Завершён':       'completed',
+    'Отменён':        'cancelled',
+    'Отменен':        'cancelled',
 }
 
 
 class Command(BaseCommand):
-    help = 'Импорт данных из папки import_data/'
+    help = 'Импорт данных из xlsx файлов в папке import_data/'
 
     def handle(self, *args, **options):
         self.stdout.write('Начало импорта...')
 
-        self.csv_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        # Папка import_data/ лежит рядом с manage.py
+        self.data_dir = os.path.join(
+            os.path.dirname(
+                os.path.dirname(
+                    os.path.dirname(
+                        os.path.dirname(__file__)
+                    )
+                )
+            ),
             'import_data'
         )
 
@@ -43,15 +50,17 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Импорт завершён!'))
 
-    def read_csv(self, filename):
-        path = os.path.join(self.csv_dir, filename)
+    def read_xlsx(self, filename):
+        """Читает xlsx файл и возвращает DataFrame, или None если файл не найден"""
+        path = os.path.join(self.data_dir, filename)
         if not os.path.exists(path):
             self.stdout.write(self.style.WARNING(f'Не найден: {filename}'))
             return None
-        return pd.read_csv(path, sep=None, engine='python', encoding='utf-8', dtype=str).fillna('')
+        return pd.read_excel(path, dtype=str).fillna('')
 
     def _parse_date(self, value):
-        if not value or str(value).strip().lower() == 'nan':
+        """Парсит дату из строки, возвращает date или None"""
+        if not value or str(value).strip() in ('', 'nan'):
             return None
         try:
             result = pd.to_datetime(value, dayfirst=True, errors='coerce')
@@ -60,28 +69,43 @@ class Command(BaseCommand):
             return None
 
     def ensure_roles(self):
+        """Создаёт базовые роли если их нет"""
         for role_name in ('guest', 'client', 'manager', 'admin'):
             Role.objects.get_or_create(name=role_name)
         self.stdout.write('Роли: готово')
 
     def import_pickup_points(self):
-        path = os.path.join(self.csv_dir, 'pickup_points.csv')
-        if not os.path.exists(path):
-            self.stdout.write(self.style.WARNING('Не найден: pickup_points.csv'))
-            return
-        df = pd.read_csv(path, encoding='utf-8')
-        for _, row in df.iterrows():
-            PickupPoint.objects.get_or_create(address=str(row.iloc[0]).strip())
-        self.stdout.write(f'Пункты выдачи: {len(df)} строк')
-
-    def import_products(self):
-        df = self.read_csv('products.csv')
+        """Импорт пунктов выдачи из Пункты выдачи_import.xlsx"""
+        df = self.read_xlsx('Пункты выдачи_import.xlsx')
         if df is None:
             return
         for _, row in df.iterrows():
-            category, _     = Category.objects.get_or_create(name=row['Категория товара'])
-            manufacturer, _ = Manufacturer.objects.get_or_create(name=row['Производитель'])
-            supplier, _     = Supplier.objects.get_or_create(name=row['Поставщик'])
+            address = str(row.iloc[0]).strip()
+            if address:
+                PickupPoint.objects.get_or_create(address=address)
+        self.stdout.write(f'Пункты выдачи: {len(df)} строк')
+
+    def import_products(self):
+        """
+        Импорт товаров из Tovar.xlsx.
+        Колонки: Наименование товара, Категория товара, Описание товара,
+                 Производитель, Поставщик, Цена, Единица измерения,
+                 Кол-во на складе, Действующая скидка, Фото
+        """
+        df = self.read_xlsx('Tovar.xlsx')
+        if df is None:
+            return
+
+        for _, row in df.iterrows():
+            category, _     = Category.objects.get_or_create(
+                name=row['Категория товара'].strip()
+            )
+            manufacturer, _ = Manufacturer.objects.get_or_create(
+                name=row['Производитель'].strip()
+            )
+            supplier, _     = Supplier.objects.get_or_create(
+                name=row['Поставщик'].strip()
+            )
 
             try:
                 price = float(row['Цена'])
@@ -97,7 +121,7 @@ class Command(BaseCommand):
                 discount = 0
 
             Product.objects.get_or_create(
-                name=row['Наименование товара'],
+                name=row['Наименование товара'].strip(),
                 manufacturer=manufacturer,
                 supplier=supplier,
                 defaults={
@@ -113,14 +137,20 @@ class Command(BaseCommand):
         self.stdout.write(f'Товары: {len(df)} строк')
 
     def import_users(self):
-        df = self.read_csv('users.csv')
+        """
+        Импорт пользователей из user_import.xlsx.
+        Колонки: ФИО, Логин, Пароль, Роль сотрудника
+        """
+        df = self.read_xlsx('user_import.xlsx')
         if df is None:
             return
+
         for _, row in df.iterrows():
             role_name = ROLE_MAP.get(row['Роль сотрудника'].strip(), 'client')
             role = Role.objects.get(name=role_name)
 
-            parts = row['ФИО'].strip().split()
+            # Разбиваем ФИО на части
+            parts       = row['ФИО'].strip().split()
             last_name   = parts[0] if len(parts) > 0 else ''
             first_name  = parts[1] if len(parts) > 1 else ''
             middle_name = parts[2] if len(parts) > 2 else ''
@@ -138,31 +168,45 @@ class Command(BaseCommand):
         self.stdout.write(f'Пользователи: {len(df)} строк')
 
     def import_orders(self):
-        df = self.read_csv('orders.csv')
+        """
+        Импорт заказов из Заказ_import.xlsx.
+        Колонки: Номер заказа, Статус заказа, Адрес пункта выдачи,
+                 Дата заказа, Дата доставки, Артикул заказа
+
+        Артикул заказа — это наименование товара (или несколько через запятую).
+        Каждый артикул привязывается к заказу через OrderItem.
+        """
+        df = self.read_xlsx('Заказ_import.xlsx')
         if df is None:
             return
+
         pickup_points = list(PickupPoint.objects.all())
 
         for _, row in df.iterrows():
             order_date    = self._parse_date(row['Дата заказа'])
             delivery_date = self._parse_date(row['Дата доставки'])
 
+            # Пропускаем строки с невалидной датой заказа
             if not order_date:
                 self.stdout.write(self.style.WARNING(
-                    f'Пропущен заказ №{row["Номер заказа"]}: невалидная дата'
+                    f'Пропущен заказ {row["Номер заказа"]}: невалидная дата'
                 ))
                 continue
 
-            try:
-                pp_index = int(float(row['Адрес пункта выдачи'])) - 1
-                pickup_point = pickup_points[pp_index] if 0 <= pp_index < len(pickup_points) else pickup_points[0]
-            except (ValueError, IndexError):
-                pickup_point = pickup_points[0] if pickup_points else None
-
+            # Ищем пункт выдачи по адресу или берём первый
+            pickup_address = row['Адрес пункта выдачи'].strip()
+            pickup_point = PickupPoint.objects.filter(
+                address__icontains=pickup_address
+            ).first()
+            if not pickup_point and pickup_points:
+                pickup_point = pickup_points[0]
             if not pickup_point:
+                self.stdout.write(self.style.WARNING(
+                    f'Нет пунктов выдачи, пропущен заказ {row["Номер заказа"]}'
+                ))
                 continue
 
-            status = STATUS_MAP.get(row['Статус заказа'].strip(), 'new')
+            status  = STATUS_MAP.get(row['Статус заказа'].strip(), 'new')
             article = row['Номер заказа'].strip()
 
             order, created = Order.objects.get_or_create(
@@ -175,16 +219,27 @@ class Command(BaseCommand):
                 }
             )
 
+            # Привязываем товары к заказу через OrderItem
             if created:
-                parts = [p.strip() for p in row['Артикул заказа'].split(',')]
-                i = 0
-                while i < len(parts) - 1:
-                    product_article = parts[i]
-                    i += 2
+                raw_articles = str(row.get('Артикул заказа', '')).strip()
+                if not raw_articles:
+                    continue
+
+                # Артикулы перечислены через запятую
+                product_names = [a.strip() for a in raw_articles.split(',') if a.strip()]
+
+                for product_name in product_names:
                     try:
-                        product = Product.objects.get(name=product_article)
+                        # Ищем товар по наименованию (артикул = наименование товара)
+                        product = Product.objects.get(name=product_name)
                         OrderItem.objects.get_or_create(order=order, product=product)
                     except Product.DoesNotExist:
-                        pass
+                        self.stdout.write(self.style.WARNING(
+                            f'Товар не найден: «{product_name}» (заказ {article})'
+                        ))
+                    except Product.MultipleObjectsReturned:
+                        # Если несколько товаров с таким именем — берём первый
+                        product = Product.objects.filter(name=product_name).first()
+                        OrderItem.objects.get_or_create(order=order, product=product)
 
         self.stdout.write(f'Заказы: {len(df)} строк')
