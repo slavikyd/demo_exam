@@ -18,14 +18,16 @@
 8. [URLs и структура приложения](#8-urls-и-структура-приложения)
 9. [Views — авторизация](#9-views--авторизация)
 10. [Views — список товаров](#10-views--список-товаров)
-11. [Views — форма добавления/редактирования товара](#11-views--форма-добавленияредактирования-товара)
-12. [Views — удаление товара](#12-views--удаление-товара)
-13. [Views — заказы](#13-views--заказы)
-14. [Шаблоны и CSS](#14-шаблоны-и-css)
-15. [Вариативная часть — cleanup неиспользуемых фото](#15-вариативная-часть--cleanup-неиспользуемых-фото)
-16. [SQL дамп и Git](#16-sql-дамп-и-git)
-17. [Чеклист перед сдачей](#17-чеклист-перед-сдачей)
-18. [Быстрые команды](#18-быстрые-команды)
+11. [Фильтры, сортировка, поиск — подробно](#11-фильтры-сортировка-поиск--подробно)
+12. [Views — форма добавления/редактирования товара](#12-views--форма-добавленияредактирования-товара)
+13. [Views — удаление товара](#13-views--удаление-товара)
+14. [Views — заказы](#14-views--заказы)
+15. [Шаблоны и CSS](#15-шаблоны-и-css)
+16. [Вариативная часть — cleanup неиспользуемых фото](#16-вариативная-часть--cleanup-неиспользуемых-фото)
+17. [SQL дамп и Git](#17-sql-дамп-и-git)
+18. [Чеклист перед сдачей](#18-чеклист-перед-сдачей)
+19. [Быстрые команды](#19-быстрые-команды)
+20. [Очистка истории команд PowerShell](#20-очистка-истории-команд-powershell)
 
 ---
 
@@ -74,8 +76,10 @@ C:\Program Files\PostgreSQL\18\bin
 psql -U postgres
 ```
 
-> [!WARNING]
-> если команда `psql` не найдена — найди `psql.exe` вручную через Проводник или Пуск и запусти напрямую:  "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres
+> ⚠️ **Warning:** если команда `psql` не найдена — найди `psql.exe` вручную через Проводник или Пуск и запусти напрямую:
+> ```powershell
+> & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres
+> ```
 
 Внутри psql:
 ```sql
@@ -686,98 +690,312 @@ VALUES ('Сидоров', 'Сидор', 'Сидорович', 'client', 'client'
 
 ---
 
-## 6. Скрипт импорта CSV (вариатив)
+## 6. Скрипт импорта xlsx (вариатив)
 
-Создать `core/management/commands/import_data.py`:
+Создать `core/management/commands/import_data.py`.
+
+Данные берутся из xlsx файлов в папке `import_data/` рядом с `manage.py`:
+- `Tovar.xlsx` — товары (артикул, наименование, цена, поставщик, производитель, категория, скидка, количество, описание, фото)
+- `user_import.xlsx` — пользователи (роль, ФИО, логин, пароль)
+- `Заказ_import.xlsx` — заказы (номер, артикулы товаров с количеством, даты, пункт выдачи по индексу, ФИО клиента, код получения, статус)
+- `Пункты выдачи_import.xlsx` — адреса пунктов выдачи (без заголовка, каждая строка — адрес)
+
+> ⚠️ **Важно:** поле "Артикул заказа" содержит пары артикул+количество через запятую:  
+> `А112Т4, 2, F635R4, 2` → товар А112Т4 в количестве 2шт, товар F635R4 в количестве 2шт.  
+> "Адрес пункта выдачи" — числовой индекс (1-based) строки в файле пунктов выдачи.
+
+> ⚠️ **Важно:** название файла пунктов выдачи содержит пробел — `Пункты выдачи_import.xlsx`.  
+> Перед запуском убедись что все xlsx файлы скопированы в папку `import_data/`.
 
 ```python
-import csv
 import os
+import pandas as pd
 from django.core.management.base import BaseCommand
 from core.models import (
-    Role, User, Category, Manufacturer, Supplier, Product, PickupPoint
+    Role, User, Category, Manufacturer, Supplier,
+    Product, PickupPoint, Order, OrderItem
 )
+
+ROLE_MAP = {
+    'Администратор': 'admin',
+    'Менеджер':      'manager',
+    'Клиент':        'client',
+    'Гость':         'guest',
+}
+
+STATUS_MAP = {
+    'Новый':          'new',
+    'В обработке':    'processing',
+    'Готов к выдаче': 'ready',
+    'Завершен':       'completed',
+    'Завершён':       'completed',
+    'Отменён':        'cancelled',
+    'Отменен':        'cancelled',
+}
 
 
 class Command(BaseCommand):
-    """Импорт данных из CSV файлов в базу данных"""
-    help = 'Импорт данных из папки import_data/'
+    help = 'Импорт данных из xlsx файлов в папке import_data/'
 
     def handle(self, *args, **options):
         self.stdout.write('Начало импорта...')
 
-        base_dir = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        self.data_dir = os.path.join(
+            os.path.dirname(
+                os.path.dirname(
+                    os.path.dirname(
+                        os.path.dirname(__file__)
+                    )
+                )
+            ),
+            'import_data'
         )
-        csv_dir = os.path.join(base_dir, 'import_data')
 
-        self.import_file(csv_dir, 'categories.csv',    self.import_category)
-        self.import_file(csv_dir, 'manufacturers.csv', self.import_manufacturer)
-        self.import_file(csv_dir, 'suppliers.csv',     self.import_supplier)
-        self.import_file(csv_dir, 'pickup_points.csv', self.import_pickup_point)
-        self.import_file(csv_dir, 'users.csv',         self.import_user)
-        self.import_file(csv_dir, 'products.csv',      self.import_product)
+        self.ensure_roles()
+        self.import_pickup_points()
+        self.import_products()
+        self.import_users()
+        self.import_orders()
 
         self.stdout.write(self.style.SUCCESS('Импорт завершён!'))
 
-    def import_file(self, csv_dir, filename, row_handler):
-        """Читает CSV и вызывает обработчик для каждой строки"""
-        path = os.path.join(csv_dir, filename)
+    def read_xlsx(self, filename):
+        """Читает xlsx файл, возвращает DataFrame или None"""
+        path = os.path.join(self.data_dir, filename)
         if not os.path.exists(path):
             self.stdout.write(self.style.WARNING(f'Не найден: {filename}'))
+            return None
+        return pd.read_excel(path, dtype=str).fillna('')
+
+    def _parse_date(self, value):
+        """Парсит дату из строки, возвращает date или None"""
+        if not value or str(value).strip() in ('', 'nan'):
+            return None
+        try:
+            # dayfirst=False потому что даты в формате YYYY-MM-DD
+            result = pd.to_datetime(value, dayfirst=False, errors='coerce')
+            return None if pd.isnull(result) else result.date()
+        except Exception:
+            return None
+
+    def ensure_roles(self):
+        """Создаёт базовые роли если их нет"""
+        for role_name in ('guest', 'client', 'manager', 'admin'):
+            Role.objects.get_or_create(name=role_name)
+        self.stdout.write('Роли: готово')
+
+    def import_pickup_points(self):
+        """
+        Импорт пунктов выдачи из Пункты выдачи_import.xlsx.
+        Файл не имеет заголовка — каждая строка это адрес.
+        Читаем с header=None чтобы не потерять первую строку.
+        Сохраняем список адресов в self.pickup_index для использования в import_orders.
+        """
+        path = os.path.join(self.data_dir, 'Пункты выдачи_import.xlsx')
+        if not os.path.exists(path):
+            self.stdout.write(self.style.WARNING('Не найден: Пункты выдачи_import.xlsx'))
+            self.pickup_index = []
             return
-        with open(path, encoding='utf-8') as f:
-            # Подстроить delimiter под реальный файл (';' или ',')
-            reader = csv.DictReader(f, delimiter=';')
-            for row in reader:
-                row_handler(row)
-        self.stdout.write(f'Импортирован: {filename}')
 
-    def import_category(self, row):
-        Category.objects.get_or_create(name=row['name'])
+        # header=None — все строки это данные, первая не заголовок
+        df = pd.read_excel(path, header=None, dtype=str).fillna('')
+        self.pickup_index = []  # список PickupPoint в порядке строк файла (1-based индекс)
 
-    def import_manufacturer(self, row):
-        Manufacturer.objects.get_or_create(name=row['name'])
+        for _, row in df.iterrows():
+            address = str(row.iloc[0]).strip()
+            if address:
+                pp, _ = PickupPoint.objects.get_or_create(address=address)
+                self.pickup_index.append(pp)
 
-    def import_supplier(self, row):
-        Supplier.objects.get_or_create(name=row['name'])
+        self.stdout.write(f'Пункты выдачи: {len(self.pickup_index)} записей')
 
-    def import_pickup_point(self, row):
-        PickupPoint.objects.get_or_create(address=row['address'])
+    def import_products(self):
+        """
+        Импорт товаров из Tovar.xlsx.
+        Колонки: Артикул, Наименование товара, Единица измерения, Цена,
+                 Поставщик, Производитель, Категория товара,
+                 Действующая скидка, Кол-во на складе, Описание товара, Фото
+        """
+        df = self.read_xlsx('Tovar.xlsx')
+        if df is None:
+            return
 
-    def import_user(self, row):
-        role = Role.objects.get(name=row['role'])
-        User.objects.get_or_create(
-            login=row['login'],
-            defaults={
-                'last_name':   row['last_name'],
-                'first_name':  row['first_name'],
-                'middle_name': row.get('middle_name', ''),
-                'password':    row['password'],
-                'role':        role,
-            }
-        )
+        for _, row in df.iterrows():
+            category, _     = Category.objects.get_or_create(
+                name=row['Категория товара'].strip()
+            )
+            manufacturer, _ = Manufacturer.objects.get_or_create(
+                name=row['Производитель'].strip()
+            )
+            supplier, _     = Supplier.objects.get_or_create(
+                name=row['Поставщик'].strip()
+            )
 
-    def import_product(self, row):
-        category     = Category.objects.get(name=row['category'])
-        manufacturer = Manufacturer.objects.get(name=row['manufacturer'])
-        supplier     = Supplier.objects.get(name=row['supplier'])
-        Product.objects.get_or_create(
-            name=row['name'],
-            defaults={
-                'category':     category,
-                'description':  row.get('description', ''),
-                'manufacturer': manufacturer,
-                'supplier':     supplier,
-                'price':        row['price'],
-                'unit':         row.get('unit', 'пара'),
-                'quantity':     int(row.get('quantity', 0)),
-                'discount':     row.get('discount', 0),
-            }
-        )
+            try:
+                price = float(row['Цена'])
+            except (ValueError, TypeError):
+                price = 0
+            try:
+                quantity = int(float(row['Кол-во на складе']))
+            except (ValueError, TypeError):
+                quantity = 0
+            try:
+                discount = float(row['Действующая скидка'])
+            except (ValueError, TypeError):
+                discount = 0
+
+            Product.objects.get_or_create(
+                article=row['Артикул'].strip(),
+                defaults={
+                    'name':         row['Наименование товара'].strip(),
+                    'category':     category,
+                    'description':  row.get('Описание товара', ''),
+                    'manufacturer': manufacturer,
+                    'supplier':     supplier,
+                    'price':        price,
+                    'unit':         row.get('Единица измерения', 'шт.') or 'шт.',
+                    'quantity':     quantity,
+                    'discount':     discount,
+                    'image':        row.get('Фото', ''),
+                }
+            )
+        self.stdout.write(f'Товары: {len(df)} записей')
+
+    def import_users(self):
+        """
+        Импорт пользователей из user_import.xlsx.
+        Колонки: Роль сотрудника, ФИО, Логин, Пароль
+        """
+        df = self.read_xlsx('user_import.xlsx')
+        if df is None:
+            return
+
+        for _, row in df.iterrows():
+            role_name = ROLE_MAP.get(row['Роль сотрудника'].strip(), 'client')
+            role = Role.objects.get(name=role_name)
+
+            parts       = row['ФИО'].strip().split()
+            last_name   = parts[0] if len(parts) > 0 else ''
+            first_name  = parts[1] if len(parts) > 1 else ''
+            middle_name = parts[2] if len(parts) > 2 else ''
+
+            User.objects.get_or_create(
+                login=row['Логин'].strip(),
+                defaults={
+                    'last_name':   last_name,
+                    'first_name':  first_name,
+                    'middle_name': middle_name,
+                    'password':    row['Пароль'].strip(),
+                    'role':        role,
+                }
+            )
+        self.stdout.write(f'Пользователи: {len(df)} записей')
+
+    def import_orders(self):
+        """
+        Импорт заказов из Заказ_import.xlsx.
+        Колонки: Номер заказа, Артикул заказа, Дата заказа, Дата доставки,
+                 Адрес пункта выдачи, ФИО авторизированного клиента,
+                 Код для получения, Статус заказа
+
+        Артикул заказа — строка вида «А112Т4, 2, F635R4, 2»:
+        чередующиеся пары артикул товара + количество.
+
+        Адрес пункта выдачи — числовой индекс (1-based) в таблице пунктов выдачи.
+
+        ФИО клиента — ищем по имени в таблице User.
+        """
+        df = self.read_xlsx('Заказ_import.xlsx')
+        if df is None:
+            return
+
+        for _, row in df.iterrows():
+            order_date    = self._parse_date(row['Дата заказа'])
+            delivery_date = self._parse_date(row['Дата доставки'])
+
+            if not order_date:
+                self.stdout.write(self.style.WARNING(
+                    f'Пропущен заказ {row["Номер заказа"]}: невалидная дата'
+                ))
+                continue
+
+            # Пункт выдачи — числовой индекс (1-based) по порядку строк в файле
+            try:
+                pp_index = int(float(row['Адрес пункта выдачи'])) - 1
+                pickup_point = self.pickup_index[pp_index]
+            except (ValueError, IndexError) as e:
+                self.stdout.write(self.style.WARNING(
+                    f'Пункт выдачи не найден для заказа {row["Номер заказа"]}: {e}'
+                ))
+                continue
+
+            # Ищем пользователя по ФИО
+            user = None
+            fio = row.get('ФИО авторизированного клиента', '').strip()
+            if fio:
+                parts = fio.split()
+                if len(parts) >= 2:
+                    try:
+                        user = User.objects.get(
+                            last_name=parts[0],
+                            first_name=parts[1]
+                        )
+                    except (User.DoesNotExist, User.MultipleObjectsReturned):
+                        pass
+
+            status  = STATUS_MAP.get(row['Статус заказа'].strip(), 'new')
+            article = str(row['Номер заказа']).strip()
+            code    = str(row.get('Код для получения', '')).strip()
+
+            order, created = Order.objects.get_or_create(
+                article=article,
+                defaults={
+                    'status':        status,
+                    'pickup_point':  pickup_point,
+                    'user':          user,
+                    'code':          code,
+                    'order_date':    order_date,
+                    'delivery_date': delivery_date,
+                }
+            )
+
+            if created:
+                # Парсим «А112Т4, 2, F635R4, 2» как пары артикул+количество
+                raw = str(row.get('Артикул заказа', '')).strip()
+                if not raw:
+                    continue
+
+                parts = [p.strip() for p in raw.split(',')]
+                # Идём по парам: parts[0]=артикул, parts[1]=количество, ...
+                i = 0
+                while i < len(parts) - 1:
+                    product_article = parts[i]
+                    try:
+                        qty = int(parts[i + 1])
+                    except (ValueError, IndexError):
+                        qty = 1
+                    i += 2
+
+                    try:
+                        product = Product.objects.get(article=product_article)
+                        OrderItem.objects.get_or_create(
+                            order=order,
+                            product=product,
+                            defaults={'quantity': qty}
+                        )
+                    except Product.DoesNotExist:
+                        self.stdout.write(self.style.WARNING(
+                            f'Товар не найден: «{product_article}» (заказ {article})'
+                        ))
+
+        self.stdout.write(f'Заказы: {len(df)} записей')
+
 ```
 
-> **На экзамене:** открой CSV в блокноте, смотри реальные заголовки и разделитель, подстрой `DictReader`.
+Перед первым импортом убедись что таблицы пусты. Если нужно переимпортировать:
+```sql
+TRUNCATE order_item, "order", pickup_point RESTART IDENTITY CASCADE;
+```
 
 ```powershell
 python manage.py import_data
@@ -939,7 +1157,144 @@ def product_list_view(request):
 
 ---
 
-## 11. Views — форма добавления/редактирования товара
+## 11. Фильтры, сортировка, поиск — подробно
+
+Всё реализовано в `product_list_view` в `views.py` и в шаблоне `product_list.html`.
+Доступно только менеджеру и администратору. Все параметры передаются через GET и применяются совместно — порядок важен: сначала поиск, потом фильтр по скидке, потом сортировка.
+
+### Поиск
+
+Поиск по всем текстовым полям одновременно через `Q`-объекты:
+
+```python
+search_query = request.GET.get('search', '').strip()
+if search_query:
+    products = products.filter(
+        Q(name__icontains=search_query) |
+        Q(description__icontains=search_query) |
+        Q(category__name__icontains=search_query) |
+        Q(manufacturer__name__icontains=search_query) |
+        Q(supplier__name__icontains=search_query) |
+        Q(unit__icontains=search_query)
+    )
+```
+
+В шаблоне — `<input>` с JS debounce 300мс, перезагружает страницу с параметром `?search=...`.
+
+### Фильтр по поставщику
+
+Закомментирован, оставлен для возможного возврата:
+
+```python
+# supplier_filter = request.GET.get('supplier', '').strip()
+# if supplier_filter:
+#     products = products.filter(supplier__name=supplier_filter)
+```
+
+В шаблоне `<select>` по поставщику также закомментирован через `{% comment %}`.
+
+### Фильтр по диапазону скидки
+
+Четыре диапазона — 0–11%, 11–15%, 15–19%, более 19%:
+
+```python
+discount_range = request.GET.get('discount_range', '').strip()
+if discount_range == '0-11':
+    products = products.filter(discount__gte=0, discount__lt=11)
+elif discount_range == '11-15':
+    products = products.filter(discount__gte=11, discount__lte=15)
+elif discount_range == '15-19':
+    products = products.filter(discount__gt=15, discount__lte=19)
+elif discount_range == '19+':
+    products = products.filter(discount__gt=19)
+```
+
+В шаблоне:
+
+```html
+<select id="discount_range">
+    <option value="">Любая скидка</option>
+    <option value="0-11"  {% if discount_range == '0-11'  %}selected{% endif %}>0–11%</option>
+    <option value="11-15" {% if discount_range == '11-15' %}selected{% endif %}>11–15%</option>
+    <option value="15-19" {% if discount_range == '15-19' %}selected{% endif %}>15–19%</option>
+    <option value="19+"   {% if discount_range == '19+'   %}selected{% endif %}>Более 19%</option>
+</select>
+```
+
+### Сортировка
+
+Четыре варианта — количество и цена в обе стороны:
+
+```python
+sort_by = request.GET.get('sort', '')
+if sort_by == 'quantity_asc':
+    products = products.order_by('quantity')
+elif sort_by == 'quantity_desc':
+    products = products.order_by('-quantity')
+elif sort_by == 'price_asc':
+    products = products.order_by('price')
+elif sort_by == 'price_desc':
+    products = products.order_by('-price')
+```
+
+В шаблоне:
+
+```html
+<select id="sort">
+    <option value="">Без сортировки</option>
+    <option value="quantity_asc"  {% if sort_by == 'quantity_asc'  %}selected{% endif %}>Количество ↑</option>
+    <option value="quantity_desc" {% if sort_by == 'quantity_desc' %}selected{% endif %}>Количество ↓</option>
+    <option value="price_asc"     {% if sort_by == 'price_asc'     %}selected{% endif %}>Цена ↑</option>
+    <option value="price_desc"    {% if sort_by == 'price_desc'    %}selected{% endif %}>Цена ↓</option>
+</select>
+```
+
+### JS — применение без кнопки
+
+Все фильтры срабатывают сразу при изменении. Параметры сохраняются вместе в URL — сортировка не сбрасывается при смене фильтра:
+
+```javascript
+function applyFilters() {
+    const params = new URLSearchParams();
+    const search         = document.getElementById('search').value;
+    const discount_range = document.getElementById('discount_range').value;
+    const sort           = document.getElementById('sort').value;
+    if (search)         params.set('search', search);
+    if (discount_range) params.set('discount_range', discount_range);
+    if (sort)           params.set('sort', sort);
+    window.location.href = '/products/?' + params.toString();
+}
+
+let timer;
+document.getElementById('search').addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(applyFilters, 300);  // debounce 300мс
+});
+document.getElementById('discount_range').addEventListener('change', applyFilters);
+document.getElementById('sort').addEventListener('change', applyFilters);
+```
+
+### Защита от двух окон редактирования
+
+Флаг в сессии в `product_update_view` — если открыт другой товар, показываем ошибку:
+
+```python
+editing = request.session.get('editing_product')
+if editing and editing != pk:
+    return render(request, 'core/product_list.html', {
+        'error': 'Уже открыто окно редактирования другого товара. Закройте его перед тем как открыть новое.',
+        ...
+    })
+request.session['editing_product'] = pk
+# ... редактирование ...
+request.session.pop('editing_product', None)  # снимаем после сохранения
+```
+
+При выходе `session.flush()` снимает блокировку автоматически.
+
+---
+
+## 12. Views — форма добавления/редактирования товара
 
 ```python
 def product_create_view(request):
@@ -1095,7 +1450,7 @@ def save_product_image(image_file):
 
 ---
 
-## 12. Views — удаление товара
+## 13. Views — удаление товара
 
 ```python
 def product_delete_view(request, pk):
@@ -1135,7 +1490,7 @@ def product_delete_view(request, pk):
 
 ---
 
-## 13. Views — заказы
+## 14. Views — заказы
 
 ```python
 def order_list_view(request):
@@ -1251,7 +1606,7 @@ def order_delete_view(request, pk):
 
 ---
 
-## 14. Шаблоны и CSS
+## 15. Шаблоны и CSS
 
 ### core/templates/core/login.html
 
@@ -1901,7 +2256,7 @@ h1 { margin: 12px 0; }
 
 ---
 
-## 15. Вариативная часть — cleanup неиспользуемых фото
+## 16. Вариативная часть — cleanup неиспользуемых фото
 
 Создать `core/management/commands/cleanup_images.py`:
 
@@ -1944,7 +2299,7 @@ python manage.py cleanup_images
 
 ---
 
-## 16. SQL дамп и Git
+## 17. SQL дамп и Git
 
 ### Дамп базы данных
 
@@ -1995,7 +2350,7 @@ git push -u origin main
 
 ---
 
-## 17. Чеклист перед сдачей
+## 18. Чеклист перед сдачей
 
 ### Модуль 1 (10 баллов)
 - [ ] БД создана в PostgreSQL (3НФ, ссылочная целостность)
@@ -2027,10 +2382,12 @@ git push -u origin main
 - [ ] Сообщения об ошибках информативны
 - [ ] Комментарии в коде там где нужно
 - [ ] Поиск в реальном времени по всем текстовым полям
-- [ ] Фильтр по поставщику (первый элемент "Все поставщики")
-- [ ] Сортировка по количеству ↑ и ↓
+- [ ] Фильтр по поставщику (закомментирован, оставлен в коде)
+- [ ] Фильтр по диапазону скидки: 0–11%, 11–15%, 15–19%, более 19%
+- [ ] Сортировка по количеству ↑↓ и цене ↑↓
 - [ ] Поиск + фильтр работают совместно
 - [ ] Сортировка сохраняется при поиске/фильтре
+- [ ] Нельзя открыть два окна редактирования одновременно
 - [ ] Форма добавления товара (только администратор)
 - [ ] Клик по товару → редактирование (только администратор)
 - [ ] Все поля заполняются при редактировании
@@ -2063,7 +2420,7 @@ git push -u origin main
 
 ---
 
-## 18. Быстрые команды
+## 19. Быстрые команды
 
 ```powershell
 # Активировать venv
@@ -2096,6 +2453,27 @@ git add .
 git commit -m "описание"
 git push
 ```
+
+---
+
+## 20. Очистка истории команд PowerShell
+
+На экзамене эксперты могут просматривать историю команд через удалённый доступ.  
+Чтобы очистить историю сессии и файл истории:
+
+```powershell
+# Очистить историю текущей сессии
+Clear-History
+
+# Удалить файл истории PowerShell (история между сессиями)
+Remove-Item (Get-PSReadlineOption).HistorySavePath -ErrorAction SilentlyContinue
+
+# Убедиться что файл удалён
+Test-Path (Get-PSReadlineOption).HistorySavePath
+# Должно вернуть False
+```
+
+> ⚠️ После `Remove-Item` история не восстанавливается. Новые команды после этого снова начнут записываться в новый файл истории.
 
 ---
 

@@ -64,6 +64,8 @@ class Supplier(models.Model):
 
 
 class Product(models.Model):
+    # Артикул товара — уникальный идентификатор из xlsx
+    article = models.CharField(max_length=100, unique=True, blank=True, default='')
     name = models.CharField(max_length=200)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
     description = models.TextField(blank=True, default='')
@@ -79,7 +81,7 @@ class Product(models.Model):
         db_table = 'product'
 
     def __str__(self):
-        return self.name
+        return f'{self.article} — {self.name}'
 
     def get_final_price(self):
         """Итоговая цена с учётом скидки"""
@@ -120,6 +122,12 @@ class Order(models.Model):
     article = models.CharField(max_length=100, unique=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='new')
     pickup_point = models.ForeignKey(PickupPoint, on_delete=models.PROTECT)
+    # Клиент, сделавший заказ (null допустим — заказ мог быть создан вручную)
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    # Код для получения заказа
+    code = models.CharField(max_length=100, blank=True, default='')
     order_date = models.DateField()
     delivery_date = models.DateField(null=True, blank=True)
 
@@ -133,6 +141,11 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    # Количество единиц товара в позиции заказа
+    quantity = models.IntegerField(default=1)
 
     class Meta:
         db_table = 'order_item'
+
+    def __str__(self):
+        return f'{self.order} — {self.product.article} x{self.quantity}'

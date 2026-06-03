@@ -93,7 +93,7 @@
         <!-- Фото или заглушка -->
         <div class="product-img">
             {% if product.image %}
-                <img src="/media/{{ product.image }}" alt="{{ product.name }}">
+                <img src="/media/products/{{ product.image }}" alt="{{ product.name }}">
             {% else %}
                 <img src="{% static 'images/picture.png' %}" alt="Нет фото">
             {% endif %}
